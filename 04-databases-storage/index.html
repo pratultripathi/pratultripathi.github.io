@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Elasticsearch – Practical Architecture Notes</title>
+  <style>
+    :root { --fg:#111; --muted:#555; --bg:#fff; --card:#f7f7f8; --border:#e6e6e8; }
+    body { margin:0; font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; color:var(--fg); background:var(--bg); }
+    header { padding:24px 18px; border-bottom:1px solid var(--border); background:var(--card); }
+    header h1 { margin:0 0 6px; font-size:22px; }
+    header p { margin:0; color:var(--muted); }
+    main { max-width: 980px; margin: 0 auto; padding: 22px 18px 40px; }
+    h2 { margin: 22px 0 10px; font-size: 18px; }
+    h3 { margin: 16px 0 8px; font-size: 15px; }
+    p, li { line-height: 1.55; }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:12px; padding:14px 14px; margin: 12px 0; }
+    .grid { display:grid; gap:12px; grid-template-columns: 1fr; }
+    @media (min-width: 860px) { .grid { grid-template-columns: 1fr 1fr; } }
+    code, pre { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+    pre { background:#0b1020; color:#e7e7ea; padding:12px; border-radius:12px; overflow:auto; border:1px solid #1c2440; }
+    pre code { color:inherit; }
+    .note { color:var(--muted); font-size: 13px; }
+    table { width:100%; border-collapse: collapse; margin: 8px 0; }
+    th, td { text-align:left; padding:10px; border-bottom:1px solid var(--border); vertical-align: top; }
+    th { background: #fafafa; }
+    .pill { display:inline-block; padding:3px 8px; border-radius:999px; border:1px solid var(--border); background:#fff; font-size:12px; color:var(--muted); }
+    hr { border:none; border-top:1px solid var(--border); margin: 20px 0; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Elasticsearch – Practical Architecture Notes</h1>
+    <p>Reference cheat sheet: definitions, building blocks, sharding, fuzzy search, DB vs ES, and real production architecture.</p>
+  </header>
+
+  <main>
+    <section class="card">
+      <h2>1) What Elasticsearch is</h2>
+      <p>Elasticsearch is a <strong>distributed, REST-based search and analytics engine</strong>.</p>
+      <ul>
+        <li><strong>Distributed</strong> → runs as a cluster of machines; data is split into shards.</li>
+        <li><strong>REST-based</strong> → accessed via HTTP APIs using JSON.</li>
+        <li><strong>Search engine</strong> → fast full-text, fuzzy, relevance-based search.</li>
+        <li><strong>Analytics engine</strong> → real-time aggregations, metrics, trends.</li>
+        <li><strong>At scale</strong> → built for huge volumes and high query rates.</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>2) Index, Document, Shard (core building blocks)</h2>
+
+      <h3>Index</h3>
+      <ul>
+        <li>A <strong>logical container</strong> of related documents.</li>
+        <li>Examples: <code>products</code>, <code>orders</code>, <code>app-logs-2026-01-27</code></li>
+      </ul>
+
+      <h3>Document</h3>
+      <ul>
+        <li>A <strong>JSON object</strong> stored inside an index.</li>
+      </ul>
+      <pre><code>{
+  "product_id": 101,
+  "name": "Wireless Headphone",
+  "price": 199
+}</code></pre>
+
+      <h3>Shard</h3>
+      <ul>
+        <li>A <strong>physical piece</strong> of an index (each shard stores part of the data).</li>
+        <li>Enables <strong>horizontal scaling</strong> and <strong>parallel search</strong>.</li>
+      </ul>
+
+      <p class="note"><strong>Index is logical</strong> → <strong>shards are physical</strong>.</p>
+    </section>
+
+    <section class="card">
+      <h2>3) Who creates shards and how data is split</h2>
+
+      <div class="grid">
+        <div class="card">
+          <h3>Human decides</h3>
+          <ul>
+            <li>Number of <strong>primary shards</strong></li>
+            <li>Number of <strong>replicas</strong></li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>Elasticsearch system does</h3>
+          <ul>
+            <li>Creates shards and places them on nodes</li>
+            <li>Rebalances/moves shards automatically</li>
+            <li>Handles failover (replica becomes primary)</li>
+          </ul>
+        </div>
+      </div>
+
+      <h3>How documents are assigned to shards</h3>
+      <p>Elasticsearch uses the document <code>_id</code> for routing (conceptually):</p>
+      <pre><code>shard = hash(_id) % number_of_primary_shards</code></pre>
+      <p class="note">Goal: even distribution + fast routing + parallel query execution.</p>
+    </section>
+
+    <section class="card">
+      <h2>4) What fuzzy search means</h2>
+      <p><strong>Fuzzy search</strong> returns results even when the search term has small spelling mistakes or typing errors (based on edit distance).</p>
+      <div class="card">
+        <p><span class="pill">Example</span></p>
+        <p><code>"wirless hedphone"</code> → matches → <code>"wireless headphone"</code></p>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>5) Elasticsearch vs Database</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Area</th>
+            <th>Database (SQL)</th>
+            <th>Elasticsearch</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Primary purpose</td>
+            <td>System of record (truth), transactions</td>
+            <td>Search + analytics, fast exploration</td>
+          </tr>
+          <tr>
+            <td>Strengths</td>
+            <td>ACID, joins, constraints, frequent updates</td>
+            <td>Full-text, fuzzy search, relevance ranking, aggregations</td>
+          </tr>
+          <tr>
+            <td>Model</td>
+            <td>Tables/rows (structured)</td>
+            <td>Indexes/documents (JSON), shards</td>
+          </tr>
+          <tr>
+            <td>Consistency</td>
+            <td>Strong</td>
+            <td>Near real-time / eventual (commonly)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p><strong>Rule:</strong> Database = correctness. Elasticsearch = speed + search + analytics. Use both together.</p>
+    </section>
+
+    <section class="card">
+      <h2>6) Where Elasticsearch sits in real architecture</h2>
+      <pre><code>Clients / UI
+     ↓
+Backend APIs
+  ↙       ↘
+SQL DB   Elasticsearch
+(truth)  (search/analytics)</code></pre>
+
+      <ul>
+        <li>Writes → SQL</li>
+        <li>Search queries → Elasticsearch</li>
+        <li>Critical reads / transactions → SQL</li>
+      </ul>
+
+      <p class="note">Elasticsearch is usually <strong>downstream</strong> (a derived copy), not the upstream source of truth.</p>
+    </section>
+
+    <section class="card">
+      <h2>7) Steps to add Elasticsearch to an SQL system</h2>
+      <ol>
+        <li>Decide what data should be searchable (don’t index everything).</li>
+        <li>Design the ES document model (often denormalized to avoid joins).</li>
+        <li>Create ES index + mappings + analyzers.</li>
+        <li>Backfill: bulk load existing SQL data into ES.</li>
+        <li>Continuous sync: CDC/events/ETL to keep ES updated.</li>
+        <li>Route search endpoints to ES; keep transactions on SQL.</li>
+        <li>Plan ops: monitoring, reindexing, shard sizing, backups.</li>
+      </ol>
+      <p><strong>Important:</strong> Elasticsearch stores its <strong>own copy</strong> in its own <strong>indexes and shards</strong>. It does not “use” SQL storage.</p>
+    </section>
+
+    <section class="card">
+      <h2>8) Data flows after implementation</h2>
+
+      <h3>Write path</h3>
+      <pre><code>API → SQL (commit)
+        ↓
+ Events / CDC / Pipeline
+        ↓
+Elasticsearch index</code></pre>
+
+      <h3>Read paths</h3>
+      <div class="grid">
+        <div class="card">
+          <h3>Search flow</h3>
+          <pre><code>UI → API → Elasticsearch → results</code></pre>
+        </div>
+        <div class="card">
+          <h3>Detail / transaction flow</h3>
+          <pre><code>UI → API → SQL → truth</code></pre>
+        </div>
+      </div>
+
+      <h3>Optional hydrate pattern (when correctness matters)</h3>
+      <pre><code>API → Elasticsearch (IDs) → SQL (latest fields) → response</code></pre>
+    </section>
+
+    <section class="card">
+      <h2>9) Is it real-time?</h2>
+      <ul>
+        <li>SQL → ES propagation is typically <strong>near real-time</strong> (seconds, not zero delay).</li>
+        <li>Temporary mismatch is normal (eventual consistency).</li>
+        <li>Use SQL when correctness is mandatory (payments, permissions, balances, inventory).</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>10) Compact mental model</h2>
+      <ul>
+        <li><strong>Index</strong> = logical dataset</li>
+        <li><strong>Shard</strong> = physical partition</li>
+        <li><strong>SQL</strong> = truth</li>
+        <li><strong>Elasticsearch</strong> = fast brain for search + analytics</li>
+        <li>Humans design shard strategy; ES manages shard lifecycle</li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <h2>11) Common real architectures</h2>
+
+      <h3>A) Product search</h3>
+      <pre><code>App → SQL (write)
+App → ES  (search)
+SQL → pipeline/events → ES (sync)</code></pre>
+
+      <h3>B) Logs/monitoring (ELK)</h3>
+      <pre><code>Apps/Servers → Beats/Logstash → Elasticsearch → Kibana</code></pre>
+
+      <h3>C) Real-time analytics</h3>
+      <pre><code>Apps/DB → Kafka → Elasticsearch → dashboards/alerts</code></pre>
+    </section>
+
+    <hr />
+    <p class="note">Tip: Print this page or keep it as a single HTML file for quick review before system design interviews.</p>
+  </main>
+</body>
+</html>
