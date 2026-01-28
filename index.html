@@ -1,17 +1,237 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-  <title>Pratul's Tech Notes</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Pratul's Learning Notes</title>
+  <style>
+    :root{
+      --bg:#0b0f19;
+      --card:#121a2b;
+      --text:#e8eefc;
+      --muted:#b7c3e6;
+      --link:#7aa7ff;
+      --border:rgba(255,255,255,.10);
+      --shadow:0 10px 30px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif;
+      background: radial-gradient(1200px 800px at 20% 10%, rgba(122,167,255,.18), transparent 55%),
+                  radial-gradient(900px 700px at 80% 30%, rgba(122,255,208,.12), transparent 55%),
+                  var(--bg);
+      color:var(--text);
+      line-height:1.5;
+    }
+    .wrap{max-width:1100px; margin:0 auto; padding:40px 20px 60px;}
+    header{
+      display:flex; flex-direction:column; gap:10px;
+      padding:22px 22px 18px;
+      border:1px solid var(--border);
+      background:rgba(18,26,43,.65);
+      backdrop-filter: blur(10px);
+      border-radius:16px;
+      box-shadow:var(--shadow);
+    }
+    h1{margin:0; font-size:30px; letter-spacing:.2px}
+    .subtitle{margin:0; color:var(--muted); font-size:15px; max-width:80ch}
+    .meta{
+      display:flex; flex-wrap:wrap; gap:10px;
+      color:var(--muted); font-size:13px;
+    }
+    .pill{
+      border:1px solid var(--border);
+      padding:6px 10px;
+      border-radius:999px;
+      background:rgba(255,255,255,.04);
+    }
+
+    h2{margin:26px 0 12px; font-size:18px}
+    .grid{
+      display:grid;
+      grid-template-columns: repeat(12, 1fr);
+      gap:14px;
+      margin-top:18px;
+    }
+    .card{
+      grid-column: span 6;
+      border:1px solid var(--border);
+      background:rgba(18,26,43,.75);
+      border-radius:16px;
+      padding:16px 16px 14px;
+      box-shadow:var(--shadow);
+      transition: transform .12s ease, border-color .12s ease;
+    }
+    .card:hover{transform: translateY(-2px); border-color: rgba(122,167,255,.35);}
+    .card h3{margin:0 0 8px; font-size:16px}
+    .card p{margin:0 0 10px; color:var(--muted); font-size:13.5px}
+    .card a{
+      color:var(--link);
+      text-decoration:none;
+      font-weight:600;
+      font-size:13.5px;
+    }
+    .card a:hover{text-decoration:underline}
+
+    .twoCols{
+      display:grid; gap:14px;
+      grid-template-columns: 1fr 1fr;
+      margin-top:16px;
+    }
+    .panel{
+      border:1px solid var(--border);
+      background:rgba(18,26,43,.55);
+      border-radius:16px;
+      padding:16px;
+    }
+    .panel h3{margin:0 0 10px; font-size:15px}
+    ul{margin:0; padding-left:18px; color:var(--muted); font-size:13.5px}
+    li{margin:6px 0}
+    footer{
+      margin-top:26px;
+      color:var(--muted);
+      font-size:12.5px;
+      text-align:center;
+      opacity:.9;
+    }
+
+    @media (max-width: 900px){
+      .card{grid-column: span 12;}
+      .twoCols{grid-template-columns: 1fr;}
+      h1{font-size:26px}
+    }
+  </style>
 </head>
 <body>
-  <h1>Welcome to My Tech Notes</h1>
-  <p>This site contains my learning notes on DevOps, System Design, and Architecture.</p>
+  <div class="wrap">
+    <header>
+      <h1>Pratul’s Self-Learning Notes</h1>
+      <p class="subtitle">
+        A structured knowledge base covering end-to-end engineering: frontend, APIs, integration, databases,
+        system design, DevOps, cloud, languages, and AI. Each topic page links to deeper notes.
+      </p>
+      <div class="meta">
+        <span class="pill">Full-Stack Engineering</span>
+        <span class="pill">System Design</span>
+        <span class="pill">DevOps + Cloud</span>
+        <span class="pill">AI Fundamentals</span>
+      </div>
+    </header>
 
-  <h2>Topics</h2>
-  <ul>
-    <li>DevOps</li>
-    <li>System Design</li>
-    <li>Cloud & APIs</li>
-  </ul>
+    <h2>Topics</h2>
+    <div class="grid">
+      <section class="card">
+        <h3>00 — Foundation</h3>
+        <p>CS basics: networking, OS, data structures, algorithms, and core engineering fundamentals.</p>
+        <a href="00-foundation/index.html">Open →</a>
+      </section>
+
+      <section class="card">
+        <h3>01 — Frontend / UI</h3>
+        <p>HTML/CSS/JS, frameworks, UI/UX, accessibility, performance, and frontend architecture.</p>
+        <a href="01-frontend-ui/index.html">Open →</a>
+      </section>
+
+      <section class="card">
+        <h3>02 — Backend / APIs</h3>
+        <p>API design, REST/GraphQL, auth, validation, microservices, and backend performance patterns.</p>
+        <a href="02-backend-api/index.html">Open →</a>
+      </section>
+
+      <section class="card">
+        <h3>03 — Middle Layer / Integration</h3>
+        <p>Event-driven systems, queues, streaming, workflows, orchestration, service-to-service patterns.</p>
+        <a href="03-middle-layer-integration/index.html">Open →</a>
+      </section>
+
+      <section class="card">
+        <h3>04 — Databases / Storage</h3>
+        <p>Relational + NoSQL, caching, search, data modeling, indexing, transactions, and data architecture.</p>
+        <a href="04-databases-storage/index.html">Open →</a>
+      </section>
+
+      <section class="card">
+        <h3>05 — System Design / Architecture</h3>
+        <p>Scalability, reliability, availability, distributed systems, patterns, ADRs, and case studies.</p>
+        <a href="05-system-design-architecture/index.html">Open →</a>
+      </section>
+
+      <section class="card">
+        <h3>06 — DevOps / SRE</h3>
+        <p>Linux, containers, Kubernetes, CI/CD, IaC, observability, SRE practices, release strategies.</p>
+        <a href="06-devops-sre/index.html">Open →</a>
+      </section>
+
+      <section class="card">
+        <h3>07 — Cloud Platforms</h3>
+        <p>AWS/Azure/GCP, cloud fundamentals, serverless, networking, security, and cloud architecture.</p>
+        <a href="07-cloud-platforms/index.html">Open →</a>
+      </section>
+
+      <section class="card">
+        <h3>08 — Languages / Frameworks</h3>
+        <p>Language deep-dives, internals, ecosystem tooling, and framework comparisons.</p>
+        <a href="08-languages-frameworks/index.html">Open →</a>
+      </section>
+
+      <section class="card">
+        <h3>09 — AI / Data</h3>
+        <p>AI basics, ML, LLMs, prompt engineering, AI system design, and applied projects.</p>
+        <a href="09-ai-data/index.html">Open →</a>
+      </section>
+
+      <section class="card">
+        <h3>10 — Quality / Security</h3>
+        <p>Testing strategies, automation, performance testing, app security, and threat modeling.</p>
+        <a href="10-quality-security/index.html">Open →</a>
+      </section>
+
+      <section class="card">
+        <h3>11 — Agile / Product / Leadership</h3>
+        <p>Agile, delivery models, product thinking, stakeholder management, and engineering leadership.</p>
+        <a href="11-agile-product-engineering/index.html">Open →</a>
+      </section>
+
+      <section class="card">
+        <h3>12 — Real-World Case Studies</h3>
+        <p>End-to-end projects, redesigns, postmortems, and architecture review writeups.</p>
+        <a href="12-real-world-case-studies/index.html">Open →</a>
+      </section>
+    </div>
+
+    <div class="twoCols">
+      <section class="panel">
+        <h3>How to use this site</h3>
+        <ul>
+          <li>Each topic has its own <code>index.html</code> landing page.</li>
+          <li>Subtopics are nested links; leaf pages contain the full notes.</li>
+          <li>Keep diagrams and screenshots under <code>/assets</code>.</li>
+        </ul>
+      </section>
+
+      <section class="panel">
+        <h3>Suggested note template</h3>
+        <ul>
+          <li><b>What it is</b> (definition)</li>
+          <li><b>Why it matters</b> (use cases)</li>
+          <li><b>How it works</b> (flow + diagram)</li>
+          <li><b>Common mistakes</b></li>
+          <li><b>Interview Q&amp;A</b> (optional)</li>
+        </ul>
+      </section>
+    </div>
+
+    <footer>
+      Built with GitHub Pages • Last updated: <span id="lastUpdated"></span>
+    </footer>
+  </div>
+
+  <script>
+    // Simple "last updated" display (client-side)
+    const d = new Date();
+    document.getElementById('lastUpdated').textContent =
+      d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+  </script>
 </body>
 </html>
