@@ -3,21 +3,20 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Backend Tech Concepts — Connected Cards (Click to Expand)</title>
+  <title>Backend Tech Concepts — Compact Cards (Scrollable Board)</title>
   <style>
     :root{
       --bg:#0b1220;
-      --panel:#101a33;
-      --card:#111b34;
-      --card2:#0e1730;
+      --panel:#0f1831;
+      --card:#101a33;
+      --card2:#0c142b;
       --text:#e8eefc;
       --muted:#a9b7d9;
       --line:#6fa8ff;
       --accent:#7cf1c7;
-      --warn:#ffdd6f;
       --shadow: 0 10px 30px rgba(0,0,0,.35);
-      --radius:16px;
-      --gap:12px;
+      --radius:14px;
+      --gap:10px;
       --max:1200px;
       --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
     }
@@ -25,7 +24,7 @@
     body{
       margin:0;
       font-family: var(--font);
-      background: radial-gradient(1200px 700px at 20% 10%, #13224d 0%, transparent 60%),
+      background: radial-gradient(1100px 680px at 20% 10%, #13224d 0%, transparent 60%),
                   radial-gradient(900px 600px at 85% 20%, #1a3c64 0%, transparent 55%),
                   var(--bg);
       color: var(--text);
@@ -33,10 +32,10 @@
 
     header{
       max-width: var(--max);
-      margin: 22px auto 10px;
+      margin: 18px auto 10px;
       padding: 0 16px;
     }
-    h1{ margin:0; font-size: 20px; letter-spacing: .2px; }
+    h1{ margin:0; font-size: 19px; letter-spacing: .2px; }
     .sub{
       margin:6px 0 0;
       color: var(--muted);
@@ -46,43 +45,61 @@
 
     .wrap{
       max-width: var(--max);
-      margin: 12px auto 28px;
-      padding: 0 16px 24px;
+      margin: 10px auto 22px;
+      padding: 0 16px 26px;
     }
 
+    /* ✅ Scrollable board */
     .board{
       position: relative;
-      background: rgba(16,26,51,.55);
+      background: rgba(15,24,49,.60);
       border: 1px solid rgba(255,255,255,.08);
-      border-radius: 20px;
+      border-radius: 18px;
       box-shadow: var(--shadow);
+
+      height: 74vh;               /* fixed height => scrollable */
+      overflow: auto;             /* scroll */
+      overscroll-behavior: contain;
       padding: 14px;
-      overflow: hidden;
     }
 
-    /* two-lane layout for a clear "connected as they should be" flow */
+    /* Inner canvas gives room for wires + card expansion */
+    .canvas{
+      position: relative;
+      min-width: 860px;           /* allow horizontal scroll on small screens */
+      min-height: 900px;          /* allow vertical space */
+      padding: 10px;
+    }
+
+    /* Wires overlay inside canvas */
+    svg#wires{
+      position:absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    /* ✅ narrower columns and cards */
     .grid{
       position: relative;
       display: grid;
-      grid-template-columns: 1.12fr .88fr;
-      gap: 14px;
-      min-height: 620px;
-    }
-
-    .col, .lane{
-      display: grid;
-      gap: var(--gap);
+      grid-template-columns: 320px 320px; /* narrower lanes */
+      gap: 18px;
       align-content: start;
+      z-index: 2;
     }
 
-    /* SMALLER cards */
+    /* Cards: compact width (inherited by column width) */
     .card{
       position: relative;
-      background: linear-gradient(180deg, rgba(17,27,52,.95), rgba(14,23,48,.85));
+      width: 100%;
+      background: linear-gradient(180deg, rgba(16,26,51,.96), rgba(12,20,43,.88));
       border: 1px solid rgba(255,255,255,.10);
       border-radius: var(--radius);
       box-shadow: 0 8px 16px rgba(0,0,0,.22);
-      padding: 10px 11px 9px;
+      padding: 9px 10px 8px;
       cursor: pointer;
       user-select: none;
       transition: transform .12s ease, border-color .12s ease, box-shadow .12s ease;
@@ -90,8 +107,8 @@
     }
     .card:hover{
       transform: translateY(-1px);
-      border-color: rgba(124,241,199,.30);
-      box-shadow: 0 10px 20px rgba(0,0,0,.25);
+      border-color: rgba(124,241,199,.28);
+      box-shadow: 0 10px 20px rgba(0,0,0,.24);
     }
     .card:focus{
       outline: 2px solid rgba(111,168,255,.55);
@@ -107,19 +124,20 @@
     }
 
     .title{
-      display:flex;
-      align-items:center;
-      gap: 8px;
-      font-weight: 750;
-      font-size: 13.5px;
+      margin: 0;
+      font-weight: 780;
+      font-size: 13px;
       letter-spacing: .15px;
       line-height: 1.15;
-      margin: 0;
+      display:flex;
+      align-items:center;
+      gap: 7px;
+      flex-wrap: wrap;
     }
 
     .badge{
-      font-size: 11px;
-      padding: 3px 8px;
+      font-size: 10.5px;
+      padding: 3px 7px;
       border-radius: 999px;
       border: 1px solid rgba(255,255,255,.10);
       background: rgba(124,241,199,.10);
@@ -128,7 +146,7 @@
     }
 
     .chev{
-      width: 24px; height: 24px;
+      width: 22px; height: 22px;
       border-radius: 10px;
       display:flex;
       align-items:center;
@@ -141,13 +159,13 @@
     }
 
     .one{
-      color: var(--muted);
-      font-size: 12.3px;
-      line-height: 1.25;
       margin: 0;
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.25;
     }
 
-    /* details collapsible area */
+    /* Expandable details */
     .details{
       max-height: 0;
       overflow: hidden;
@@ -155,10 +173,9 @@
       transition: max-height .22s ease, opacity .18s ease, margin-top .18s ease;
       margin-top: 0;
     }
-
     .details p, .details ul{
       color: var(--muted);
-      font-size: 12.5px;
+      font-size: 12.2px;
       line-height: 1.35;
       margin: 8px 0 0;
     }
@@ -168,23 +185,21 @@
     .mem{
       display:inline-block;
       margin-top: 8px;
-      padding: 7px 9px;
+      padding: 7px 8px;
       border-radius: 12px;
       background: rgba(111,168,255,.10);
       border: 1px solid rgba(111,168,255,.20);
       color: rgba(232,238,252,.92);
-      font-size: 12.2px;
+      font-size: 12px;
     }
-    .mem b{ color: var(--warn); font-weight: 750; }
 
-    /* expanded state */
     .card[aria-expanded="true"]{
       border-color: rgba(111,168,255,.50);
       box-shadow: 0 12px 26px rgba(0,0,0,.28);
-      z-index: 5;
+      z-index: 4;
     }
     .card[aria-expanded="true"] .details{
-      max-height: 420px; /* big enough for our content */
+      max-height: 460px;
       opacity: 1;
       margin-top: 6px;
     }
@@ -195,10 +210,10 @@
       border-color: rgba(124,241,199,.25);
     }
 
-    /* anchors for lines */
+    /* Anchors for wires */
     .anchor{
       position:absolute;
-      width: 9px; height: 9px;
+      width: 8px; height: 8px;
       border-radius: 999px;
       background: rgba(111,168,255,.95);
       box-shadow: 0 0 0 6px rgba(111,168,255,.12);
@@ -214,242 +229,248 @@
       box-shadow: 0 0 0 6px rgba(124,241,199,.12);
     }
 
-    /* SVG wires */
-    svg#wires{
-      position: absolute;
-      inset: 0;
-      width: 100%;
-      height: 100%;
-      pointer-events: none;
-      z-index: 1;
+    /* stacks */
+    .lane{
+      display: grid;
+      gap: var(--gap);
+      align-content: start;
     }
 
-    .legend{
-      display:flex;
-      flex-wrap: wrap;
-      gap:10px;
+    /* helpful small footer */
+    .hint{
       margin-top: 10px;
-      color: var(--muted);
+      color: rgba(169,183,217,.92);
       font-size: 12px;
+      display:flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items:center;
       opacity: .95;
     }
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap: 8px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(255,255,255,.04);
+    }
     .dot{
+      width: 9px; height: 9px; border-radius: 999px;
       display:inline-block;
-      width:9px; height:9px; border-radius:999px;
-      margin-right:6px;
-      vertical-align: middle;
     }
     .dot.blue{ background: rgba(111,168,255,.95); box-shadow: 0 0 0 5px rgba(111,168,255,.14); }
     .dot.green{ background: rgba(124,241,199,.95); box-shadow: 0 0 0 5px rgba(124,241,199,.14); }
 
-    @media (max-width: 980px){
-      .grid{ grid-template-columns: 1fr; }
-      .board{ padding: 12px; }
-      .anchor.out{ right: 10px; }
-      .anchor.in{ left: 10px; }
-      /* on mobile, wires are less useful; keep but it will redraw */
+    @media (max-width: 760px){
+      .board{ height: 78vh; }
+      .grid{ grid-template-columns: 320px; } /* single lane, still scrollable horizontally if needed */
+      .canvas{ min-width: 360px; }
     }
   </style>
 </head>
 
 <body>
   <header>
-    <h1>Backend Tech Concepts — Connected Cards</h1>
+    <h1>Backend Tech Concepts — Compact Cards (Scrollable)</h1>
     <p class="sub">
-      Click any card to expand details. Cards are connected in the right order:
-      <b>CDN → API Gateway → Load Balancer → Reverse Proxy → Web Server → Compute → Cache/Queue/Object Storage/Scheduler</b>
+      Cards are narrow. Click to expand. The board scrolls (vertical & horizontal if needed).
     </p>
   </header>
 
   <div class="wrap">
     <div class="board" id="board">
-      <svg id="wires"></svg>
+      <div class="canvas" id="canvas">
+        <svg id="wires"></svg>
 
-      <div class="grid" id="grid">
-        <!-- LEFT FLOW -->
-        <div class="col" id="left">
-          <div class="card" id="cdn" role="button" tabindex="0" aria-expanded="false">
-            <div class="anchor out"></div>
-            <div class="head">
-              <p class="title">CDN (Cloudflare / Akamai) <span class="badge">Edge speed</span></p>
-              <span class="chev">⌄</span>
+        <div class="grid" id="grid">
+          <!-- LEFT FLOW (Edge → Entry → Traffic → Web) -->
+          <div class="lane" id="left">
+            <div class="card" id="cdn" role="button" tabindex="0" aria-expanded="false">
+              <div class="anchor out"></div>
+              <div class="head">
+                <p class="title">CDN <span class="badge">Edge</span></p>
+                <span class="chev">⌄</span>
+              </div>
+              <p class="one">Static content close to users → fast load.</p>
+              <div class="details">
+                <p><b>Used when:</b> global users, heavy images/JS/CSS, want faster UX.</p>
+                <ul>
+                  <li>Caches assets near users</li>
+                  <li>Reduces backend load and cost</li>
+                </ul>
+                <span class="mem"><b>Memory:</b> CDN brings content closer to users.</span>
+              </div>
             </div>
-            <p class="one">Static content close to users → faster load.</p>
-            <div class="details">
-              <p><b>Used when:</b> users are global, lots of images/JS/CSS, you want fast experience.</p>
-              <ul>
-                <li>Caches assets near users</li>
-                <li>Reduces backend traffic and cost</li>
-              </ul>
-              <span class="mem"><b>Memory:</b> “CDN brings content closer to users for speed.”</span>
+
+            <div class="card" id="apigw" role="button" tabindex="0" aria-expanded="false">
+              <div class="anchor in"></div>
+              <div class="anchor out"></div>
+              <div class="head">
+                <p class="title">API Gateway <span class="badge">Entry</span></p>
+                <span class="chev">⌄</span>
+              </div>
+              <p class="one">One entry point → route + secure + monitor.</p>
+              <div class="details">
+                <p><b>Used when:</b> many services, need a single controlled door.</p>
+                <ul>
+                  <li>Auth / rate limiting / routing / analytics</li>
+                  <li>Great for microservices</li>
+                </ul>
+                <span class="mem"><b>Memory:</b> Gateway controls & protects incoming traffic.</span>
+              </div>
+            </div>
+
+            <div class="card" id="lb" role="button" tabindex="0" aria-expanded="false">
+              <div class="anchor in"></div>
+              <div class="anchor out"></div>
+              <div class="head">
+                <p class="title">Load Balancer <span class="badge">Split</span></p>
+                <span class="chev">⌄</span>
+              </div>
+              <p class="one">Distribute traffic → scale + fault tolerance.</p>
+              <div class="details">
+                <p><b>Used when:</b> multiple instances and you want availability.</p>
+                <ul>
+                  <li>Even traffic distribution</li>
+                  <li>Health checks + failover</li>
+                </ul>
+                <span class="mem"><b>Memory:</b> LB divides load so no server dies.</span>
+              </div>
+            </div>
+
+            <div class="card" id="rp" role="button" tabindex="0" aria-expanded="false">
+              <div class="anchor in"></div>
+              <div class="anchor out"></div>
+              <div class="head">
+                <p class="title">Reverse Proxy <span class="badge">Middle</span></p>
+                <span class="chev">⌄</span>
+              </div>
+              <p class="one">Forwards requests + adds SSL/caching.</p>
+              <div class="details">
+                <p><b>Used when:</b> want a front shield for backends.</p>
+                <ul>
+                  <li>SSL termination</li>
+                  <li>Caching / compression</li>
+                  <li>Hides backend topology</li>
+                </ul>
+                <span class="mem"><b>Memory:</b> Reverse proxy forwards smartly.</span>
+              </div>
+            </div>
+
+            <div class="card" id="webserver" role="button" tabindex="0" aria-expanded="false">
+              <div class="anchor in"></div>
+              <div class="anchor out"></div>
+              <div class="head">
+                <p class="title">Web Server <span class="badge">HTTP</span></p>
+                <span class="chev">⌄</span>
+              </div>
+              <p class="one">Handles HTTP; serves static; can proxy.</p>
+              <div class="details">
+                <p><b>Used when:</b> you need an HTTP engine or static delivery.</p>
+                <ul>
+                  <li>Serves requests</li>
+                  <li>Often doubles as reverse proxy</li>
+                </ul>
+                <span class="mem"><b>Memory:</b> Web server handles HTTP requests.</span>
+              </div>
             </div>
           </div>
 
-          <div class="card" id="apigw" role="button" tabindex="0" aria-expanded="false">
-            <div class="anchor in"></div>
-            <div class="anchor out"></div>
-            <div class="head">
-              <p class="title">API Gateway <span class="badge">Front door</span></p>
-              <span class="chev">⌄</span>
+          <!-- RIGHT FLOW (Compute → Supporting components) -->
+          <div class="lane" id="right">
+            <div class="card" id="compute" role="button" tabindex="0" aria-expanded="false">
+              <div class="anchor in"></div>
+              <div class="anchor out"></div>
+              <div class="head">
+                <p class="title">Compute <span class="badge">Run</span></p>
+                <span class="chev">⌄</span>
+              </div>
+              <p class="one">Where services run: K8s or Serverless.</p>
+              <div class="details">
+                <p><b>Options:</b></p>
+                <ul>
+                  <li><b>Serverless (AWS Lambda)</b>: no server mgmt; event/low-medium traffic.</li>
+                  <li><b>Kubernetes</b>: containers at scale; autoscale + self-heal.</li>
+                </ul>
+                <span class="mem"><b>Memory:</b> Compute = where business logic runs.</span>
+              </div>
             </div>
-            <p class="one">One entry point → route + secure + monitor APIs.</p>
-            <div class="details">
-              <p><b>Used when:</b> you have many services and want a single controlled entry.</p>
-              <ul>
-                <li>Auth / rate limiting / routing / analytics</li>
-                <li>Best friend of microservices</li>
-              </ul>
-              <span class="mem"><b>Memory:</b> “Gateway controls and protects incoming API traffic.”</span>
-            </div>
-          </div>
 
-          <div class="card" id="lb" role="button" tabindex="0" aria-expanded="false">
-            <div class="anchor in"></div>
-            <div class="anchor out"></div>
-            <div class="head">
-              <p class="title">Load Balancer <span class="badge">Traffic split</span></p>
-              <span class="chev">⌄</span>
+            <div class="card" id="cache" role="button" tabindex="0" aria-expanded="false">
+              <div class="anchor in"></div>
+              <div class="head">
+                <p class="title">Cache <span class="badge">Speed</span></p>
+                <span class="chev">⌄</span>
+              </div>
+              <p class="one">Hot data in memory → faster responses.</p>
+              <div class="details">
+                <p><b>Used when:</b> repeated reads, want millisecond latency.</p>
+                <ul>
+                  <li>Reduces DB load</li>
+                  <li>Good for sessions/tokens/common lookups</li>
+                </ul>
+                <span class="mem"><b>Memory:</b> Cache keeps hot data in memory.</span>
+              </div>
             </div>
-            <p class="one">Distribute traffic across servers → scale + availability.</p>
-            <div class="details">
-              <p><b>Used when:</b> multiple instances exist and you want fault tolerance.</p>
-              <ul>
-                <li>Even traffic distribution</li>
-                <li>Health checks + failover</li>
-              </ul>
-              <span class="mem"><b>Memory:</b> “LB divides load so no single server dies.”</span>
-            </div>
-          </div>
 
-          <div class="card" id="rp" role="button" tabindex="0" aria-expanded="false">
-            <div class="anchor in"></div>
-            <div class="anchor out"></div>
-            <div class="head">
-              <p class="title">Reverse Proxy <span class="badge">Smart middle</span></p>
-              <span class="chev">⌄</span>
+            <div class="card" id="mq" role="button" tabindex="0" aria-expanded="false">
+              <div class="anchor in"></div>
+              <div class="head">
+                <p class="title">Message Queue <span class="badge">Async</span></p>
+                <span class="chev">⌄</span>
+              </div>
+              <p class="one">Decouple services → reliable async work.</p>
+              <div class="details">
+                <p><b>Used when:</b> you don’t want one service blocking another.</p>
+                <ul>
+                  <li>Buffers spikes</li>
+                  <li>Event-driven architecture</li>
+                </ul>
+                <span class="mem"><b>Memory:</b> Queue decouples services.</span>
+              </div>
             </div>
-            <p class="one">Forwards requests + adds SSL/caching/compression.</p>
-            <div class="details">
-              <p><b>Used when:</b> you want a “front shield” for backends.</p>
-              <ul>
-                <li>SSL termination</li>
-                <li>Caching / compression</li>
-                <li>Hides backend topology</li>
-              </ul>
-              <span class="mem"><b>Memory:</b> “Reverse proxy stands in front and forwards smartly.”</span>
-            </div>
-          </div>
 
-          <div class="card" id="webserver" role="button" tabindex="0" aria-expanded="false">
-            <div class="anchor in"></div>
-            <div class="anchor out"></div>
-            <div class="head">
-              <p class="title">Web Server (Nginx / Apache) <span class="badge">HTTP</span></p>
-              <span class="chev">⌄</span>
+            <div class="card" id="objectstore" role="button" tabindex="0" aria-expanded="false">
+              <div class="anchor in"></div>
+              <div class="head">
+                <p class="title">Object Storage <span class="badge">Files</span></p>
+                <span class="chev">⌄</span>
+              </div>
+              <p class="one">Warehouse for big files (S3/MinIO).</p>
+              <div class="details">
+                <p><b>Used for:</b> images, videos, PDFs, backups — durable & cheap.</p>
+                <ul>
+                  <li>Unstructured file storage</li>
+                  <li>Scales easily</li>
+                </ul>
+                <span class="mem"><b>Memory:</b> Object storage = file warehouse.</span>
+              </div>
             </div>
-            <p class="one">Handles HTTP, serves static content, can proxy too.</p>
-            <div class="details">
-              <p><b>Used when:</b> you need an HTTP engine or static delivery.</p>
-              <ul>
-                <li>Serves requests</li>
-                <li>Often doubles as reverse proxy</li>
-              </ul>
-              <span class="mem"><b>Memory:</b> “Web server handles HTTP requests and serves content.”</span>
-            </div>
-          </div>
-        </div>
 
-        <!-- RIGHT SIDE: Compute + supporting building blocks -->
-        <div class="lane" id="right">
-          <div class="card" id="compute" role="button" tabindex="0" aria-expanded="false">
-            <div class="anchor in"></div>
-            <div class="anchor out"></div>
-            <div class="head">
-              <p class="title">Compute Layer <span class="badge">Runs code</span></p>
-              <span class="chev">⌄</span>
+            <div class="card" id="scheduler" role="button" tabindex="0" aria-expanded="false">
+              <div class="anchor in"></div>
+              <div class="head">
+                <p class="title">Job Scheduler <span class="badge">BG</span></p>
+                <span class="chev">⌄</span>
+              </div>
+              <p class="one">Runs background / scheduled tasks.</p>
+              <div class="details">
+                <p><b>Used for:</b> email, reports, cleanup, nightly jobs.</p>
+                <ul>
+                  <li>Runs out-of-band work</li>
+                  <li>Supports retries</li>
+                </ul>
+                <span class="mem"><b>Memory:</b> Scheduler runs timed/background work.</span>
+              </div>
             </div>
-            <p class="one">Where your services run: Kubernetes or Serverless.</p>
-            <div class="details">
-              <p><b>Options:</b></p>
-              <ul>
-                <li><b>Serverless (AWS Lambda)</b>: run code without managing servers (great for event/low-medium traffic).</li>
-                <li><b>Kubernetes</b>: manage containers at scale (autoscale + self-heal + resilience).</li>
-              </ul>
-              <span class="mem"><b>Memory:</b> “Compute = where business logic runs.”</span>
-            </div>
-          </div>
 
-          <div class="card" id="cache" role="button" tabindex="0" aria-expanded="false">
-            <div class="anchor in"></div>
-            <div class="head">
-              <p class="title">Cache (Redis / Memcached) <span class="badge">Speed</span></p>
-              <span class="chev">⌄</span>
+            <div class="hint">
+              <span class="chip"><span class="dot blue"></span>Flow line</span>
+              <span class="chip"><span class="dot green"></span>Next component</span>
+              <span class="chip">Scroll inside the board ↕︎ ↔︎</span>
             </div>
-            <p class="one">Hot data in memory → faster responses.</p>
-            <div class="details">
-              <p><b>Used when:</b> repeated reads, want millisecond latency.</p>
-              <ul>
-                <li>Reduces DB load</li>
-                <li>Great for session/token/data lookups</li>
-              </ul>
-              <span class="mem"><b>Memory:</b> “Cache keeps hot data in memory to make systems fast.”</span>
-            </div>
-          </div>
-
-          <div class="card" id="mq" role="button" tabindex="0" aria-expanded="false">
-            <div class="anchor in"></div>
-            <div class="head">
-              <p class="title">Message Queue (Kafka / RabbitMQ) <span class="badge">Async</span></p>
-              <span class="chev">⌄</span>
-            </div>
-            <p class="one">Decouple services → reliable async processing.</p>
-            <div class="details">
-              <p><b>Used when:</b> you don’t want service A blocked by service B.</p>
-              <ul>
-                <li>Buffers spikes (“shock absorber”)</li>
-                <li>Enables event-driven systems</li>
-              </ul>
-              <span class="mem"><b>Memory:</b> “Queue decouples services and enables async communication.”</span>
-            </div>
-          </div>
-
-          <div class="card" id="objectstore" role="button" tabindex="0" aria-expanded="false">
-            <div class="anchor in"></div>
-            <div class="head">
-              <p class="title">Object Storage (S3 / MinIO) <span class="badge">Files</span></p>
-              <span class="chev">⌄</span>
-            </div>
-            <p class="one">Warehouse for big files (images, videos, backups).</p>
-            <div class="details">
-              <p><b>Used for:</b> large unstructured files; cheap and durable storage.</p>
-              <ul>
-                <li>Images / videos / PDFs</li>
-                <li>Backups and archives</li>
-              </ul>
-              <span class="mem"><b>Memory:</b> “Object storage keeps large unstructured files cheaply and safely.”</span>
-            </div>
-          </div>
-
-          <div class="card" id="scheduler" role="button" tabindex="0" aria-expanded="false">
-            <div class="anchor in"></div>
-            <div class="head">
-              <p class="title">Job Scheduler (Celery / Quartz / Cron) <span class="badge">Background</span></p>
-              <span class="chev">⌄</span>
-            </div>
-            <p class="one">Runs background tasks and scheduled jobs.</p>
-            <div class="details">
-              <p><b>Used for:</b> jobs that should not block user requests.</p>
-              <ul>
-                <li>Emails, reports, cleanup, nightly processing</li>
-                <li>Retryable background workflows</li>
-              </ul>
-              <span class="mem"><b>Memory:</b> “Scheduler runs timed/background work.”</span>
-            </div>
-          </div>
-
-          <div class="legend">
-            <span><span class="dot blue"></span>Flow direction</span>
-            <span><span class="dot green"></span>Next component</span>
           </div>
         </div>
       </div>
@@ -457,18 +478,18 @@
   </div>
 
   <script>
-    // -------- Expand / collapse behavior ----------
+    // Accordion expand/collapse
     function toggleCard(card, force){
       const expanded = card.getAttribute("aria-expanded") === "true";
       const next = (force !== undefined) ? force : !expanded;
 
-      // Close others (accordion behavior)
+      // close other open cards (accordion)
       document.querySelectorAll(".card[aria-expanded='true']").forEach(c => {
         if (c !== card) c.setAttribute("aria-expanded", "false");
       });
 
       card.setAttribute("aria-expanded", String(next));
-      requestAnimationFrame(drawWires); // redraw because heights changed
+      requestAnimationFrame(drawWires);
     }
 
     document.querySelectorAll(".card").forEach(card => {
@@ -478,13 +499,11 @@
           e.preventDefault();
           toggleCard(card);
         }
-        if (e.key === "Escape") {
-          toggleCard(card, false);
-        }
+        if (e.key === "Escape") toggleCard(card, false);
       });
     });
 
-    // -------- Wires (connections) ----------
+    // Wires
     const edges = [
       ["cdn", "apigw"],
       ["apigw", "lb"],
@@ -499,26 +518,33 @@
 
     const svg = document.getElementById("wires");
     const board = document.getElementById("board");
+    const canvas = document.getElementById("canvas");
 
     function getAnchor(el, which){
       const a = el.querySelector(`.anchor.${which}`);
       return a || el.querySelector(".anchor");
     }
 
-    function ptInBoard(el){
+    // Point relative to canvas (not viewport), because board scrolls
+    function ptInCanvas(el){
       const r = el.getBoundingClientRect();
-      const b = board.getBoundingClientRect();
+      const c = canvas.getBoundingClientRect();
       return {
-        x: (r.left - b.left) + r.width/2,
-        y: (r.top - b.top) + r.height/2
+        x: (r.left - c.left) + r.width/2,
+        y: (r.top - c.top) + r.height/2
       };
     }
 
     function drawWires(){
       while(svg.firstChild) svg.removeChild(svg.firstChild);
 
-      const b = board.getBoundingClientRect();
-      svg.setAttribute("viewBox", `0 0 ${b.width} ${b.height}`);
+      // match SVG to canvas size
+      const c = canvas.getBoundingClientRect();
+      const w = canvas.scrollWidth;
+      const h = canvas.scrollHeight;
+      svg.setAttribute("viewBox", `0 0 ${w} ${h}`);
+      svg.setAttribute("width", w);
+      svg.setAttribute("height", h);
 
       edges.forEach(([fromId, toId]) => {
         const from = document.getElementById(fromId);
@@ -529,10 +555,10 @@
         const aIn  = getAnchor(to, "in");
         if(!aOut || !aIn) return;
 
-        const p1 = ptInBoard(aOut);
-        const p2 = ptInBoard(aIn);
+        const p1 = ptInCanvas(aOut);
+        const p2 = ptInCanvas(aIn);
 
-        const dx = Math.max(70, Math.abs(p2.x - p1.x) * 0.45);
+        const dx = Math.max(60, Math.abs(p2.x - p1.x) * 0.45);
         const c1 = { x: p1.x + dx, y: p1.y };
         const c2 = { x: p2.x - dx, y: p2.y };
 
@@ -540,13 +566,13 @@
         path.setAttribute("d", `M ${p1.x} ${p1.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${p2.x} ${p2.y}`);
         path.setAttribute("fill", "none");
         path.setAttribute("stroke", "rgba(111,168,255,.68)");
-        path.setAttribute("stroke-width", "2.1");
+        path.setAttribute("stroke-width", "2.0");
         path.setAttribute("stroke-linecap", "round");
         svg.appendChild(path);
 
         // Arrow head at end
         const ang = Math.atan2(p2.y - c2.y, p2.x - c2.x);
-        const size = 8;
+        const size = 7.5;
         const ax = p2.x, ay = p2.y;
         const pA = { x: ax - size*Math.cos(ang) + (size*0.6)*Math.sin(ang), y: ay - size*Math.sin(ang) - (size*0.6)*Math.cos(ang) };
         const pB = { x: ax - size*Math.cos(ang) - (size*0.6)*Math.sin(ang), y: ay - size*Math.sin(ang) + (size*0.6)*Math.cos(ang) };
@@ -558,10 +584,12 @@
       });
     }
 
-    // redraw on resize/scroll and after expansions
+    // redraw on resize and on board scroll (important)
     window.addEventListener("resize", drawWires, { passive:true });
-    window.addEventListener("scroll", drawWires, { passive:true });
-    setTimeout(drawWires, 60);
+    board.addEventListener("scroll", () => requestAnimationFrame(drawWires), { passive:true });
+
+    // initial draw
+    setTimeout(drawWires, 80);
   </script>
 </body>
 </html>
