@@ -1,0 +1,438 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Backend Tech Concepts — Connected Notes</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#121b2f;
+      --card2:#0f1730;
+      --text:#e8eefc;
+      --muted:#a9b7d9;
+      --line:#6fa8ff;
+      --accent:#7cf1c7;
+      --shadow: 0 10px 30px rgba(0,0,0,.35);
+      --radius:18px;
+      --gap:16px;
+      --max:1200px;
+      --font: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+
+    body{
+      margin:0;
+      font-family: var(--font);
+      background: radial-gradient(1200px 700px at 20% 10%, #13224d 0%, transparent 60%),
+                  radial-gradient(900px 600px at 85% 20%, #1a3c64 0%, transparent 55%),
+                  var(--bg);
+      color: var(--text);
+    }
+
+    header{
+      max-width: var(--max);
+      margin: 26px auto 10px;
+      padding: 0 16px;
+    }
+    h1{
+      margin:0;
+      font-size: 22px;
+      letter-spacing: .2px;
+    }
+    .sub{
+      margin:6px 0 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+
+    .wrap{
+      max-width: var(--max);
+      margin: 14px auto 30px;
+      padding: 0 16px 24px;
+    }
+
+    .board{
+      position: relative;
+      background: rgba(18,27,47,.55);
+      border: 1px solid rgba(255,255,255,.08);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+      padding: 18px;
+      overflow: hidden;
+    }
+
+    /* grid layout for nodes */
+    .grid{
+      position: relative;
+      display: grid;
+      grid-template-columns: 1.15fr .85fr;
+      gap: 18px;
+      min-height: 640px;
+    }
+
+    .col{
+      display: grid;
+      gap: var(--gap);
+      align-content: start;
+    }
+
+    .lane{
+      display: grid;
+      gap: var(--gap);
+      align-content: start;
+    }
+
+    /* cards */
+    .node{
+      position: relative;
+      background: linear-gradient(180deg, rgba(18,27,47,.95), rgba(15,23,48,.85));
+      border: 1px solid rgba(255,255,255,.10);
+      border-radius: var(--radius);
+      padding: 14px 14px 12px;
+      box-shadow: 0 8px 18px rgba(0,0,0,.25);
+    }
+
+    .node .title{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      font-weight: 700;
+      font-size: 14.5px;
+      letter-spacing: .2px;
+      margin-bottom: 6px;
+    }
+
+    .badge{
+      font-size: 12px;
+      padding: 4px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.10);
+      background: rgba(124,241,199,.10);
+      color: var(--accent);
+      white-space: nowrap;
+    }
+
+    .node .desc{
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+      margin: 0;
+    }
+
+    .node ul{
+      margin: 10px 0 0 16px;
+      padding: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.35;
+    }
+    .node li{ margin: 4px 0; }
+
+    /* anchors for drawing lines */
+    .anchor{
+      position:absolute;
+      width: 10px; height: 10px;
+      border-radius: 999px;
+      background: rgba(111,168,255,.95);
+      box-shadow: 0 0 0 6px rgba(111,168,255,.12);
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 4;
+    }
+    .anchor.out{ right: -6px; }
+    .anchor.in{ left: -6px; background: rgba(124,241,199,.95); box-shadow: 0 0 0 6px rgba(124,241,199,.12); }
+
+    /* SVG overlay for connections */
+    svg#wires{
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .legend{
+      display:flex;
+      flex-wrap: wrap;
+      gap:10px;
+      margin-top: 12px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+    .dot{
+      display:inline-block;
+      width:10px; height:10px; border-radius:999px;
+      margin-right:6px;
+      vertical-align: middle;
+    }
+    .dot.blue{ background: rgba(111,168,255,.95); box-shadow: 0 0 0 5px rgba(111,168,255,.14); }
+    .dot.green{ background: rgba(124,241,199,.95); box-shadow: 0 0 0 5px rgba(124,241,199,.14); }
+
+    /* responsive */
+    @media (max-width: 980px){
+      .grid{ grid-template-columns: 1fr; }
+      .anchor.out{ right: 12px; }
+      .anchor.in{ left: 12px; }
+      .node{ padding-left: 18px; padding-right: 18px; }
+      .board{ padding: 14px; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>Backend Tech Concepts — Connected Notes (Pratul style)</h1>
+    <p class="sub">
+      One block per concept, connected in the architecture flow.<br/>
+      Tip: You can rearrange sections by moving the cards; the connectors redraw automatically.
+    </p>
+  </header>
+
+  <div class="wrap">
+    <div class="board" id="board">
+      <svg id="wires"></svg>
+
+      <div class="grid" id="grid">
+        <!-- LEFT: Edge → Entry → Traffic → Web -->
+        <div class="col" id="left">
+          <div class="node" id="cdn">
+            <div class="anchor out" data-port="out"></div>
+            <div class="title">CDN (Cloudflare / Akamai) <span class="badge">Edge speed</span></div>
+            <p class="desc">Delivers static assets faster by caching closer to users.</p>
+            <ul>
+              <li>Global users → faster load</li>
+              <li>Reduces backend load</li>
+            </ul>
+          </div>
+
+          <div class="node" id="apigw">
+            <div class="anchor in" data-port="in"></div>
+            <div class="anchor out" data-port="out"></div>
+            <div class="title">API Gateway <span class="badge">Front door</span></div>
+            <p class="desc">One entry point to manage, route, secure, and monitor APIs.</p>
+            <ul>
+              <li>Auth / rate limit / routing</li>
+              <li>Great for microservices</li>
+            </ul>
+          </div>
+
+          <div class="node" id="lb">
+            <div class="anchor in" data-port="in"></div>
+            <div class="anchor out" data-port="out"></div>
+            <div class="title">Load Balancer <span class="badge">Traffic split</span></div>
+            <p class="desc">Distributes traffic across multiple servers for scalability & fault tolerance.</p>
+            <ul>
+              <li>Stops one server from dying</li>
+              <li>Improves availability</li>
+            </ul>
+          </div>
+
+          <div class="node" id="rp">
+            <div class="anchor in" data-port="in"></div>
+            <div class="anchor out" data-port="out"></div>
+            <div class="title">Reverse Proxy <span class="badge">Smart middle</span></div>
+            <p class="desc">Forwards requests to backend servers; often adds SSL, caching, compression.</p>
+            <ul>
+              <li>Hides backend internals</li>
+              <li>Central place for SSL</li>
+            </ul>
+          </div>
+
+          <div class="node" id="webserver">
+            <div class="anchor in" data-port="in"></div>
+            <div class="anchor out" data-port="out"></div>
+            <div class="title">Web Server (Nginx / Apache) <span class="badge">HTTP engine</span></div>
+            <p class="desc">Serves HTTP requests, static content, or acts as a reverse proxy.</p>
+          </div>
+        </div>
+
+        <!-- RIGHT: Compute + Supporting systems -->
+        <div class="lane" id="right">
+          <div class="node" id="compute">
+            <div class="anchor in" data-port="in"></div>
+            <div class="anchor out" data-port="out"></div>
+            <div class="title">Compute Layer <span class="badge">Where code runs</span></div>
+            <p class="desc">Pick one based on scale and ops effort.</p>
+            <ul>
+              <li><b>Serverless (AWS Lambda)</b>: run code without managing servers</li>
+              <li><b>Kubernetes</b>: manage large-scale container apps (autoscale + resilience)</li>
+            </ul>
+          </div>
+
+          <div class="node" id="cache">
+            <div class="anchor in" data-port="in"></div>
+            <div class="title">Cache (Redis / Memcached) <span class="badge">Speed</span></div>
+            <p class="desc">Stores frequently accessed data in memory to speed up responses.</p>
+          </div>
+
+          <div class="node" id="mq">
+            <div class="anchor in" data-port="in"></div>
+            <div class="title">Message Queue (Kafka / RabbitMQ) <span class="badge">Async</span></div>
+            <p class="desc">Decouples services and enables reliable asynchronous communication.</p>
+          </div>
+
+          <div class="node" id="objectstore">
+            <div class="anchor in" data-port="in"></div>
+            <div class="title">Object Storage (S3 / MinIO) <span class="badge">Files</span></div>
+            <p class="desc">Stores large unstructured data like images, videos, PDFs, backups.</p>
+          </div>
+
+          <div class="node" id="scheduler">
+            <div class="anchor in" data-port="in"></div>
+            <div class="title">Job Scheduler (Celery / Quartz / Cron) <span class="badge">Background</span></div>
+            <p class="desc">Runs background tasks or scheduled jobs (reports, emails, cleanup).</p>
+          </div>
+
+          <div class="legend">
+            <span><span class="dot blue"></span>Outbound connector</span>
+            <span><span class="dot green"></span>Inbound connector</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    /**
+     * Draw curved connectors between node anchors.
+     * - Connections are defined in `edges` by node IDs
+     * - Wires redraw on resize / scroll
+     */
+    const edges = [
+      ["cdn", "apigw"],
+      ["apigw", "lb"],
+      ["lb", "rp"],
+      ["rp", "webserver"],
+      ["webserver", "compute"],
+
+      // compute to supporting components
+      ["compute", "cache"],
+      ["compute", "mq"],
+      ["compute", "objectstore"],
+      ["compute", "scheduler"]
+    ];
+
+    const svg = document.getElementById("wires");
+    const board = document.getElementById("board");
+
+    function getAnchor(el, which){
+      // which: "in" or "out"
+      const a = el.querySelector(`.anchor.${which}`);
+      return a || el.querySelector(".anchor"); // fallback
+    }
+
+    function ptInBoard(el){
+      const r = el.getBoundingClientRect();
+      const b = board.getBoundingClientRect();
+      return {
+        x: (r.left - b.left) + r.width/2,
+        y: (r.top - b.top) + r.height/2
+      };
+    }
+
+    function draw(){
+      // Clear
+      while(svg.firstChild) svg.removeChild(svg.firstChild);
+
+      const b = board.getBoundingClientRect();
+      svg.setAttribute("viewBox", `0 0 ${b.width} ${b.height}`);
+
+      edges.forEach(([fromId, toId]) => {
+        const from = document.getElementById(fromId);
+        const to = document.getElementById(toId);
+        if(!from || !to) return;
+
+        const aOut = getAnchor(from, "out");
+        const aIn  = getAnchor(to, "in");
+        if(!aOut || !aIn) return;
+
+        const p1 = ptInBoard(aOut);
+        const p2 = ptInBoard(aIn);
+
+        // Curvature
+        const dx = Math.max(70, Math.abs(p2.x - p1.x) * 0.45);
+        const c1 = { x: p1.x + dx, y: p1.y };
+        const c2 = { x: p2.x - dx, y: p2.y };
+
+        const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        path.setAttribute("d", `M ${p1.x} ${p1.y} C ${c1.x} ${c1.y}, ${c2.x} ${c2.y}, ${p2.x} ${p2.y}`);
+        path.setAttribute("fill", "none");
+        path.setAttribute("stroke", "rgba(111,168,255,.70)");
+        path.setAttribute("stroke-width", "2.2");
+        path.setAttribute("stroke-linecap", "round");
+        path.setAttribute("stroke-dasharray", "0");
+        svg.appendChild(path);
+
+        // arrow head
+        const arrow = document.createElementNS("http://www.w3.org/2000/svg", "path");
+        // small arrow at end
+        const ang = Math.atan2(p2.y - c2.y, p2.x - c2.x);
+        const size = 8;
+        const ax = p2.x, ay = p2.y;
+        const pA = { x: ax - size*Math.cos(ang) + (size*0.6)*Math.sin(ang), y: ay - size*Math.sin(ang) - (size*0.6)*Math.cos(ang) };
+        const pB = { x: ax - size*Math.cos(ang) - (size*0.6)*Math.sin(ang), y: ay - size*Math.sin(ang) + (size*0.6)*Math.cos(ang) };
+        arrow.setAttribute("d", `M ${ax} ${ay} L ${pA.x} ${pA.y} L ${pB.x} ${pB.y} Z`);
+        arrow.setAttribute("fill", "rgba(124,241,199,.9)");
+        svg.appendChild(arrow);
+      });
+    }
+
+    // Make nodes draggable (simple)
+    let drag = null;
+    let start = null;
+
+    document.querySelectorAll(".node").forEach(node => {
+      node.style.cursor = "grab";
+      node.addEventListener("pointerdown", (e) => {
+        // only drag on wide screens; on mobile it's annoying
+        if (window.matchMedia("(max-width: 980px)").matches) return;
+        drag = node;
+        start = { x: e.clientX, y: e.clientY };
+        const r = node.getBoundingClientRect();
+        node.dataset.ox = r.left;
+        node.dataset.oy = r.top;
+        node.setPointerCapture(e.pointerId);
+        node.style.position = "relative"; // keep layout stable
+        node.style.zIndex = 5;
+        node.style.cursor = "grabbing";
+      });
+
+      node.addEventListener("pointermove", (e) => {
+        if (!drag || drag !== node) return;
+        const dx = e.clientX - start.x;
+        const dy = e.clientY - start.y;
+        node.style.transform = `translate(${dx}px, ${dy}px)`;
+        draw();
+      });
+
+      node.addEventListener("pointerup", (e) => {
+        if (!drag || drag !== node) return;
+        // commit transform into margin-like offset by using translate, but keep it simple:
+        // convert transform into top/left relative shifts:
+        const tr = node.style.transform.match(/translate\(([-\d.]+)px,\s*([-\d.]+)px\)/);
+        node.style.zIndex = "";
+        node.style.cursor = "grab";
+        if (tr){
+          const dx = parseFloat(tr[1]);
+          const dy = parseFloat(tr[2]);
+          node.style.transform = "none";
+          // Use CSS translate via margin hack: store offsets in CSS variables and apply via translate
+          // Simpler: apply a permanent translate using style (but we cleared it). We'll use relative positioning:
+          node.style.position = "relative";
+          node.style.left = (parseFloat(node.style.left || 0) + dx) + "px";
+          node.style.top  = (parseFloat(node.style.top  || 0) + dy) + "px";
+        }
+        drag = null;
+        start = null;
+        draw();
+      });
+    });
+
+    window.addEventListener("resize", draw, { passive: true });
+    window.addEventListener("scroll", draw, { passive: true });
+    setTimeout(draw, 50);
+  </script>
+</body>
+</html>
