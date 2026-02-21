@@ -1,1 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Reverse Proxy vs Load Balancer — Personalized Notes</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --card:#111a33;
+      --text:#e8ecff;
+      --muted:#b8c1ff;
+      --accent:#7aa2ff;
+      --accent2:#7dffa7;
+      --border:rgba(255,255,255,.10);
+      --code:#0a0f1f;
+    }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background:linear-gradient(180deg, var(--bg), #070a14);
+      color:var(--text);
+      line-height:1.55;
+    }
+    header{
+      padding:28px 18px 10px;
+      max-width:980px;
+      margin:0 auto;
+    }
+    h1{margin:0 0 6px;font-size:28px;letter-spacing:.2px}
+    .subtitle{color:var(--muted);margin:0 0 18px}
+    main{
+      max-width:980px;
+      margin:0 auto;
+      padding:0 18px 40px;
+    }
+    section{
+      background:rgba(17,26,51,.65);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:18px 18px 8px;
+      margin:14px 0;
+      box-shadow: 0 10px 25px rgba(0,0,0,.25);
+    }
+    h2{margin:0 0 10px;font-size:20px;color:var(--accent)}
+    h3{margin:14px 0 8px;font-size:16px;color:#d9e1ff}
+    p{margin:8px 0}
+    ul{margin:8px 0 10px;padding-left:22px}
+    li{margin:6px 0}
+    code, pre{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      font-size: 13px;
+    }
+    pre{
+      background:var(--code);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px 12px;
+      overflow:auto;
+      margin:10px 0 14px;
+      white-space:pre;
+    }
+    .note{
+      border-left:4px solid var(--accent2);
+      padding:8px 12px;
+      margin:10px 0 14px;
+      background:rgba(10,15,31,.5);
+      border-radius:10px;
+      color:#eafff2;
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin:10px 0 14px;
+      overflow:hidden;
+      border-radius:12px;
+      border:1px solid var(--border);
+    }
+    th, td{
+      border-bottom:1px solid var(--border);
+      padding:10px 10px;
+      vertical-align:top;
+      text-align:left;
+    }
+    th{color:#d9e1ff;background:rgba(10,15,31,.55)}
+    tr:last-child td{border-bottom:none}
+    .pill{
+      display:inline-block;
+      padding:2px 10px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      color:var(--muted);
+      font-size:12px;
+      margin-right:6px;
+      margin-bottom:6px;
+      background:rgba(10,15,31,.45);
+    }
+    footer{
+      max-width:980px;
+      margin:0 auto;
+      padding:10px 18px 26px;
+      color:var(--muted);
+      font-size:12px;
+    }
+  </style>
+</head>
 
+<body>
+  <header>
+    <h1>Reverse Proxy vs Load Balancer — Personalized Notes</h1>
+    <p class="subtitle">Focused on your Angular + Nginx deployment context (CSR frontend + backend APIs) with diagrams and memory lines.</p>
+    <div>
+      <span class="pill">Angular</span>
+      <span class="pill">Nginx</span>
+      <span class="pill">Reverse Proxy</span>
+      <span class="pill">Load Balancer</span>
+      <span class="pill">Enterprise Flow</span>
+    </div>
+  </header>
+
+  <main>
+
+    <section>
+      <h2>1) Reverse Proxy — What it is</h2>
+      <p><strong>Definition:</strong> A reverse proxy sits in front of backend services and forwards requests to the correct service. The client talks to the reverse proxy (not directly to your backend servers).</p>
+
+      <div class="note">
+        <strong>Memory line:</strong> <strong>Reverse Proxy decides WHICH service</strong>.
+      </div>
+
+      <h3>Reverse Proxy Routing Diagram</h3>
+      <pre><code>Browser
+   ↓
+Reverse Proxy (Nginx)
+   ↓           ↓
+Angular App   Java Backend</code></pre>
+
+      <h3>Angular + API example (typical)</h3>
+      <p>Nginx can serve Angular static files and proxy API requests at the same time:</p>
+      <pre><code>server {
+
+  listen 80;
+  server_name library.com;
+
+  # 1) Angular (static files)
+  location / {
+    root /var/www/angular;
+    try_files $uri $uri/ /index.html;
+  }
+
+  # 2) APIs (proxy)
+  location /api/ {
+    proxy_pass http://java-backend:8080/;
+  }
+
+}</code></pre>
+
+      <h3>Why reverse proxy is used (in your Angular setup)</h3>
+      <ul>
+        <li><strong>Routing:</strong> <code>/</code> goes to Angular; <code>/api</code> goes to backend services.</li>
+        <li><strong>Hide backend:</strong> browser never sees internal backend hostnames/ports.</li>
+        <li><strong>Central entry point:</strong> one domain (library.com) for everything.</li>
+        <li><strong>Security controls:</strong> rate limits, headers, WAF-like rules (often). </li>
+        <li><strong>SSL termination:</strong> reverse proxy can handle HTTPS certificates.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>2) Load Balancer — What it is</h2>
+      <p><strong>Definition:</strong> A load balancer distributes traffic across multiple server instances to provide scalability and high availability.</p>
+
+      <div class="note">
+        <strong>Memory line:</strong> <strong>Load Balancer decides WHICH server</strong>.
+      </div>
+
+      <h3>Load Balancing Diagram</h3>
+      <pre><code>Browser
+   ↓
+Load Balancer
+ ↓     ↓     ↓
+S1    S2    S3</code></pre>
+
+      <h3>What load balancer solves</h3>
+      <ul>
+        <li><strong>Scalability:</strong> handles more traffic by adding servers.</li>
+        <li><strong>Availability:</strong> if one server fails, traffic goes to healthy ones.</li>
+        <li><strong>Health checks:</strong> continuously checks which servers are alive.</li>
+      </ul>
+    </section>
+
+    <section>
+      <h2>3) Where each sits in the request-response flow</h2>
+      <p>In a typical enterprise Angular production setup:</p>
+
+      <pre><code>Browser
+  ↓
+Internet
+  ↓
+CDN (optional)
+  ↓
+Load Balancer
+  ↓
+Reverse Proxy (Nginx)
+  ↓
+Angular static files OR Backend APIs
+  ↓
+Database / Cache
+  ↓
+Response back to Browser</code></pre>
+
+      <div class="note">
+        <strong>Key idea:</strong> Load balancer spreads traffic across multiple Nginx (or app) servers; reverse proxy routes requests inside a chosen server to the right service.
+      </div>
+    </section>
+
+    <section>
+      <h2>4) Your Angular example — Full flow</h2>
+
+      <h3>A) User opens a page (CSR)</h3>
+      <pre><code>User: https://library.com/dashboard
+
+Browser
+ ↓
+Load Balancer (selects one Nginx)
+ ↓
+Reverse Proxy / Web Server (Nginx)
+ ↓
+returns index.html
+ ↓
+browser downloads JS bundles
+ ↓
+Angular Router renders /dashboard</code></pre>
+
+      <h3>B) Angular calls backend API</h3>
+      <pre><code>User’s browser requests:
+  https://library.com/api/users
+
+Browser
+ ↓
+Load Balancer
+ ↓
+Reverse Proxy (Nginx)
+ ↓
+proxy_pass → Java Backend
+ ↓
+Database
+ ↓
+JSON response back to browser</code></pre>
+    </section>
+
+    <section>
+      <h2>5) Reverse Proxy vs Load Balancer — Differences</h2>
+      <table>
+        <thead>
+          <tr>
+            <th>Topic</th>
+            <th>Reverse Proxy</th>
+            <th>Load Balancer</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Main purpose</td>
+            <td>Routing to the correct service (path/domain/headers)</td>
+            <td>Distributing traffic across multiple servers</td>
+          </tr>
+          <tr>
+            <td>Decides…</td>
+            <td><strong>Which service</strong> handles the request</td>
+            <td><strong>Which server instance</strong> handles the request</td>
+          </tr>
+          <tr>
+            <td>Typical examples</td>
+            <td>Nginx, Apache, Envoy</td>
+            <td>AWS ELB/ALB, NLB, HAProxy, F5</td>
+          </tr>
+          <tr>
+            <td>Can one product do both?</td>
+            <td colspan="2">Yes. Many tools can act as both. The difference is the <em>role</em> in architecture, not always the product name.</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="note">
+        <strong>Interview-ready line:</strong> Load balancer distributes traffic across servers for scalability/availability, while reverse proxy routes requests to appropriate backend services and hides internal topology from clients.
+      </div>
+    </section>
+
+    <section>
+      <h2>6) Best “memory diagram” (print this)</h2>
+      <pre><code>Browser
+  ↓
+Load Balancer        (WHICH server?)
+  ↓
+Reverse Proxy        (WHICH service?)
+  ↓
+App/Static Files
+  ↓
+DB/Cache</code></pre>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>Suggestion: Save this file as <code>reverse-proxy-vs-load-balancer.html</code> in your GitHub repo. You can later convert to Markdown if needed.</p>
+  </footer>
+</body>
+</html>
