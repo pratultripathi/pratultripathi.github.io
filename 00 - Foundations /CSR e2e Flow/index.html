@@ -1,1 +1,441 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Angular CSR + Nginx + Reverse Proxy + Load Balancer — Notes</title>
+  <style>
+    :root{
+      --bg:#0b1020;
+      --card:#111a33;
+      --text:#e8ecff;
+      --muted:#b8c1ff;
+      --accent:#7aa2ff;
+      --accent2:#7dffa7;
+      --border:rgba(255,255,255,.10);
+      --code:#0a0f1f;
+    }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      background:linear-gradient(180deg, var(--bg), #070a14);
+      color:var(--text);
+      line-height:1.55;
+    }
+    header{
+      padding:28px 18px 10px;
+      max-width:980px;
+      margin:0 auto;
+    }
+    h1{margin:0 0 6px;font-size:28px;letter-spacing:.2px}
+    .subtitle{color:var(--muted);margin:0 0 18px}
+    main{
+      max-width:980px;
+      margin:0 auto;
+      padding:0 18px 40px;
+    }
+    section{
+      background:rgba(17,26,51,.65);
+      border:1px solid var(--border);
+      border-radius:16px;
+      padding:18px 18px 8px;
+      margin:14px 0;
+      box-shadow: 0 10px 25px rgba(0,0,0,.25);
+    }
+    h2{margin:0 0 10px;font-size:20px;color:var(--accent)}
+    h3{margin:14px 0 8px;font-size:16px;color:#d9e1ff}
+    p{margin:8px 0}
+    ul{margin:8px 0 10px;padding-left:22px}
+    li{margin:6px 0}
+    code, pre{
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono","Courier New", monospace;
+      font-size: 13px;
+    }
+    pre{
+      background:var(--code);
+      border:1px solid var(--border);
+      border-radius:14px;
+      padding:12px 12px;
+      overflow:auto;
+      margin:10px 0 14px;
+      white-space:pre;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:12px;
+    }
+    @media (min-width: 920px){
+      .grid.two{grid-template-columns: 1fr 1fr;}
+    }
+    .note{
+      border-left:4px solid var(--accent2);
+      padding:8px 12px;
+      margin:10px 0 14px;
+      background:rgba(10,15,31,.5);
+      border-radius:10px;
+      color:#eafff2;
+    }
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin:10px 0 14px;
+      overflow:hidden;
+      border-radius:12px;
+      border:1px solid var(--border);
+    }
+    th, td{
+      border-bottom:1px solid var(--border);
+      padding:10px 10px;
+      vertical-align:top;
+      text-align:left;
+    }
+    th{color:#d9e1ff;background:rgba(10,15,31,.55)}
+    tr:last-child td{border-bottom:none}
+    .pill{
+      display:inline-block;
+      padding:2px 10px;
+      border:1px solid var(--border);
+      border-radius:999px;
+      color:var(--muted);
+      font-size:12px;
+      margin-right:6px;
+      margin-bottom:6px;
+      background:rgba(10,15,31,.45);
+    }
+    footer{
+      max-width:980px;
+      margin:0 auto;
+      padding:10px 18px 26px;
+      color:var(--muted);
+      font-size:12px;
+    }
+    a{color:var(--accent);text-decoration:none}
+    a:hover{text-decoration:underline}
+  </style>
+</head>
 
+<body>
+  <header>
+    <h1>Angular CSR + Nginx + Reverse Proxy + Load Balancer — Notes</h1>
+    <p class="subtitle">Consolidated notes from our chat: build output, deployment mapping, deep links, reverse proxy vs load balancer, and end-to-end request flow.</p>
+    <div>
+      <span class="pill">Angular CSR</span>
+      <span class="pill">Nginx</span>
+      <span class="pill">Deep links</span>
+      <span class="pill">Reverse Proxy</span>
+      <span class="pill">Load Balancer</span>
+      <span class="pill">Request/Response Flow</span>
+    </div>
+  </header>
+
+  <main>
+
+    <section>
+      <h2>1) Angular CSR Build Output</h2>
+      <p><strong>Command</strong></p>
+      <pre><code>ng build --configuration production</code></pre>
+
+      <p><strong>Output folder (typical)</strong></p>
+      <pre><code>dist/app/
+  index.html
+  main.abc123.js
+  runtime.def456.js
+  polyfills.xyz789.js
+  styles.css
+  assets/
+  favicon.ico</code></pre>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Artifact</th>
+            <th>What it is</th>
+            <th>Runs where</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><code>index.html</code></td>
+            <td>Entry document that references JS/CSS bundles</td>
+            <td>Browser</td>
+          </tr>
+          <tr>
+            <td><code>main.*.js</code></td>
+            <td>Your bundled Angular application (components, services, router, etc.)</td>
+            <td>Browser</td>
+          </tr>
+          <tr>
+            <td><code>runtime.*.js</code></td>
+            <td>Bootstrapping/runtime loader code used by the bundler</td>
+            <td>Browser</td>
+          </tr>
+          <tr>
+            <td><code>polyfills.*.js</code></td>
+            <td>Compatibility shims for older/varied browsers (depends on config)</td>
+            <td>Browser</td>
+          </tr>
+          <tr>
+            <td><code>styles.*.css</code></td>
+            <td>Global CSS bundle</td>
+            <td>Browser</td>
+          </tr>
+          <tr>
+            <td><code>assets/</code></td>
+            <td>Static files (images, fonts, etc.)</td>
+            <td>Browser (downloaded as needed)</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <div class="note">
+        <strong>Memory line:</strong> Angular CSR build output is <strong>HTML + JS + CSS + assets</strong> (not machine code). The browser executes the JS.
+      </div>
+    </section>
+
+    <section>
+      <h2>2) Deploying Angular CSR to Nginx</h2>
+      <div class="grid two">
+        <div>
+          <h3>Example server folders</h3>
+          <pre><code>/var/www/
+  library/
+    index.html
+    main.*.js
+    styles.*.css
+    assets/
+  school/
+    index.html
+    main.*.js
+    styles.*.css
+    assets/</code></pre>
+        </div>
+        <div>
+          <h3>Nginx “virtual host” mapping</h3>
+          <pre><code>server {
+  listen 80;
+  server_name library.com;
+
+  root /var/www/library;
+  index index.html;
+
+  location / {
+    try_files $uri $uri/ /index.html;
+  }
+}</code></pre>
+          <pre><code>server {
+  listen 80;
+  server_name school.com;
+
+  root /var/www/school;
+  index index.html;
+
+  location / {
+    try_files $uri $uri/ /index.html;
+  }
+}</code></pre>
+        </div>
+      </div>
+
+      <h3>How Nginx chooses the right app</h3>
+      <ul>
+        <li>Browser sends request with a <strong>Host header</strong> (example: <code>Host: library.com</code>).</li>
+        <li>Nginx matches that Host header to the correct <code>server_name</code> block.</li>
+        <li>That server block’s <code>root</code> points to the correct folder.</li>
+        <li>Nginx returns <code>index.html</code> from that folder.</li>
+      </ul>
+
+      <pre><code>Request:
+  GET /
+  Host: library.com
+
+Nginx selects:
+  server_name library.com  →  root /var/www/library  →  /var/www/library/index.html</code></pre>
+
+      <div class="note">
+        <strong>Memory line:</strong> <strong>Domain/Host header decides the folder</strong> (virtual hosting).
+      </div>
+    </section>
+
+    <section>
+      <h2>3) What the Server Sends for First Visit (Angular CSR)</h2>
+
+      <h3>A) User visits home page</h3>
+      <pre><code>User URL: https://library.com/
+
+1) Browser → Nginx:  GET /
+2) Nginx → Browser: index.html
+3) Browser parses index.html and requests bundles:
+   GET /runtime.*.js
+   GET /polyfills.*.js
+   GET /main.*.js
+   GET /styles.*.css
+4) Nginx serves those static files
+5) Angular boots in the browser and renders the Home route</code></pre>
+
+      <h3>B) User enters a deep link first time (most important)</h3>
+      <pre><code>User URL: https://library.com/dashboard
+
+1) Browser → Nginx:  GET /dashboard
+2) Nginx tries to find /var/www/library/dashboard (file)
+3) Not found → falls back to /index.html due to:
+   try_files $uri $uri/ /index.html;
+4) Browser downloads JS bundles
+5) Angular Router reads URL '/dashboard' and renders DashboardComponent</code></pre>
+
+      <div class="note">
+        <strong>Memory line:</strong> In CSR, server returns <strong>index.html</strong>; Angular Router handles <strong>routes</strong>.
+      </div>
+    </section>
+
+    <section>
+      <h2>4) ASCII Diagrams (Quick Visual Revision)</h2>
+
+      <h3>Angular CSR basic flow</h3>
+      <pre><code>Browser
+  └─ GET / or GET /dashboard  ───────────────► Nginx
+                                └─ returns index.html
+Browser
+  └─ downloads JS/CSS bundles ──────────────► Nginx
+Browser
+  └─ Angular runs + Router renders UI</code></pre>
+
+      <h3>Domain → folder mapping (two apps)</h3>
+      <pre><code>library.com  ─► Nginx server block (server_name library.com) ─► root /var/www/library ─► index.html
+school.com   ─► Nginx server block (server_name school.com)  ─► root /var/www/school  ─► index.html</code></pre>
+    </section>
+
+    <section>
+      <h2>5) Reverse Proxy</h2>
+      <p><strong>Reverse proxy</strong> sits in front of backend services and forwards requests to the correct internal service. It commonly routes by:</p>
+      <ul>
+        <li>Path (e.g., <code>/api</code>)</li>
+        <li>Domain (e.g., <code>api.library.com</code>)</li>
+        <li>Headers</li>
+      </ul>
+
+      <h3>Example: serve Angular + proxy API</h3>
+      <pre><code>server {
+  listen 80;
+  server_name library.com;
+  root /var/www/library;
+
+  location / {
+    try_files $uri $uri/ /index.html;
+  }
+
+  location /api/ {
+    proxy_pass http://backend-service:8080/;
+  }
+}</code></pre>
+
+      <pre><code>Browser ─► Nginx (reverse proxy) ─► Backend API</code></pre>
+
+      <div class="note">
+        <strong>Memory line:</strong> Reverse Proxy = <strong>routes requests to the right service</strong>.
+      </div>
+    </section>
+
+    <section>
+      <h2>6) Load Balancer</h2>
+      <p><strong>Load balancer</strong> distributes traffic across multiple instances of the same tier (for scalability and high availability).</p>
+
+      <pre><code>Browser
+  └─► Load Balancer
+        ├─► Nginx #1
+        ├─► Nginx #2
+        └─► Nginx #3</code></pre>
+
+      <div class="note">
+        <strong>Memory line:</strong> Load Balancer = <strong>distributes load across servers</strong>.
+      </div>
+    </section>
+
+    <section>
+      <h2>7) Reverse Proxy vs Load Balancer (Key Differences)</h2>
+
+      <table>
+        <thead>
+          <tr>
+            <th>Topic</th>
+            <th>Reverse Proxy</th>
+            <th>Load Balancer</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Main purpose</td>
+            <td>Route to the correct service (by path/domain/headers)</td>
+            <td>Distribute requests across multiple servers</td>
+          </tr>
+          <tr>
+            <td>Decides…</td>
+            <td><strong>Which service</strong> should handle the request</td>
+            <td><strong>Which instance</strong> should handle the request</td>
+          </tr>
+          <tr>
+            <td>Typical placement</td>
+            <td>In front of apps/microservices</td>
+            <td>In front of a pool of servers</td>
+          </tr>
+          <tr>
+            <td>Examples</td>
+            <td>Nginx, Apache, Envoy</td>
+            <td>AWS ELB/ALB/NLB, HAProxy, F5</td>
+          </tr>
+          <tr>
+            <td>Can they overlap?</td>
+            <td colspan="2">Yes. Some products (Nginx/HAProxy/ALB) can do both, but the <em>logical roles</em> differ.</td>
+          </tr>
+        </tbody>
+      </table>
+    </section>
+
+    <section>
+      <h2>8) End-to-End Enterprise Request Flow</h2>
+      <pre><code>Browser
+  ↓
+DNS (resolves library.com → IP)
+  ↓
+CDN (optional; may serve cached JS/CSS)
+  ↓
+Load Balancer (chooses a healthy Nginx instance)
+  ↓
+Reverse Proxy / Web Server (Nginx)
+  ├─ serves Angular static files (index.html, main.js, styles.css, assets)
+  └─ proxies /api/* to Backend Services
+  ↓
+Backend (Java/.NET/Node) (if API)
+  ↓
+Database / Cache
+  ↓
+Response back to Browser</code></pre>
+
+      <div class="note">
+        <strong>Memory line:</strong> Typical flow: <strong>Browser → CDN → Load Balancer → Reverse Proxy → App/Files</strong>.
+      </div>
+    </section>
+
+    <section>
+      <h2>9) Quick Angular CSR “What gets downloaded?”</h2>
+
+      <h3>First time visit</h3>
+      <ul>
+        <li><strong>Always:</strong> <code>index.html</code></li>
+        <li><strong>Then:</strong> JS/CSS bundles referenced by <code>index.html</code> (main/runtime/polyfills/styles)</li>
+        <li><strong>Assets:</strong> downloaded only when referenced (images/fonts/icons)</li>
+      </ul>
+
+      <h3>Lazy loading note</h3>
+      <p>If you use lazy-loaded modules, Angular will download additional <em>chunk</em> files only when that route is opened.</p>
+    </section>
+
+  </main>
+
+  <footer>
+    <p>
+      Tip: Put this file in GitHub as <code>notes-angular-csr-nginx.html</code>. You can also convert it to Markdown later if needed.
+    </p>
+  </footer>
+</body>
+</html>
