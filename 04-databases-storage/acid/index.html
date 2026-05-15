@@ -1,1 +1,537 @@
-Hello
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ACID + CAP Theorem Notes</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: Inter, Arial, sans-serif;
+      background: #0f172a;
+      color: #e2e8f0;
+      line-height: 1.7;
+      padding: 40px 20px;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #1e293b, #111827);
+      border-radius: 20px;
+      padding: 50px;
+      margin-bottom: 40px;
+      border: 1px solid #334155;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .hero h1 {
+      font-size: 3rem;
+      margin-bottom: 15px;
+      color: #f8fafc;
+    }
+
+    .hero p {
+      font-size: 1.2rem;
+      color: #cbd5e1;
+    }
+
+    .section {
+      margin-bottom: 50px;
+    }
+
+    .section-title {
+      font-size: 2.2rem;
+      margin-bottom: 20px;
+      color: #38bdf8;
+      border-left: 6px solid #38bdf8;
+      padding-left: 16px;
+    }
+
+    .card {
+      background: #111827;
+      border: 1px solid #1e293b;
+      border-radius: 18px;
+      padding: 30px;
+      margin-bottom: 25px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+    }
+    
+    .card h3 {
+      font-size: 1.8rem;
+      color: #f8fafc;
+      margin-bottom: 15px;
+    }
+
+    .definition {
+      background: #0f172a;
+      border-left: 5px solid #22c55e;
+      padding: 18px;
+      border-radius: 10px;
+      margin: 20px 0;
+      color: #d1fae5;
+      font-size: 1.05rem;
+    }
+
+    .visual {
+      background: #020617;
+      border: 1px dashed #475569;
+      border-radius: 12px;
+      padding: 20px;
+      margin: 20px 0;
+      overflow-x: auto;
+      font-family: monospace;
+      color: #93c5fd;
+      white-space: pre-wrap;
+    }
+
+    .memory-box {
+      background: linear-gradient(135deg, #1d4ed8, #2563eb);
+      padding: 18px;
+      border-radius: 12px;
+      margin-top: 20px;
+      color: white;
+      font-weight: bold;
+      font-size: 1.05rem;
+    }
+
+    .interview {
+      margin-top: 25px;
+      background: #1e293b;
+      border-radius: 14px;
+      padding: 22px;
+      border: 1px solid #334155;
+    }
+
+    .interview h4 {
+      color: #facc15;
+      margin-bottom: 12px;
+      font-size: 1.15rem;
+    }
+
+    .answer {
+      color: #e2e8f0;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+      overflow: hidden;
+      border-radius: 12px;
+    }
+
+    table th {
+      background: #1d4ed8;
+      color: white;
+      padding: 14px;
+      text-align: left;
+    }
+
+    table td {
+      padding: 14px;
+      border-bottom: 1px solid #334155;
+      background: #0f172a;
+    }
+
+    .highlight {
+      color: #38bdf8;
+      font-weight: bold;
+    }
+
+    .summary {
+      background: linear-gradient(135deg, #7c3aed, #4f46e5);
+      padding: 35px;
+      border-radius: 20px;
+      margin-top: 40px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+    }
+
+    .summary h2 {
+      margin-bottom: 20px;
+      font-size: 2rem;
+      color: white;
+    }
+
+    .summary p {
+      font-size: 1.15rem;
+      color: #f8fafc;
+    }
+
+    @media (max-width: 768px) {
+      .hero {
+        padding: 30px;
+      }
+
+      .hero h1 {
+        font-size: 2rem;
+      }
+
+      .section-title {
+        font-size: 1.7rem;
+      }
+
+      .card h3 {
+        font-size: 1.4rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+
+    <div class="hero">
+      <h1>ACID + CAP Theorem</h1>
+      <p>System Design Interview Notes — Visual + Memory Friendly Version</p>
+    </div>
+
+    <section class="section">
+      <h2 class="section-title">What is ACID?</h2>
+
+      <div class="card">
+        <div class="visual">
+ACID
+┌────────────────────┐
+│ A → Atomicity      │
+│ C → Consistency    │
+│ I → Isolation      │
+│ D → Durability     │
+└────────────────────┘
+        </div>
+
+        <div class="definition">
+          ACID is a set of guarantees provided by relational databases to ensure reliable and correct transactions.
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">A — Atomicity</h2>
+
+      <div class="card">
+        <h3>Definition</h3>
+
+        <div class="definition">
+          Either the ENTIRE transaction succeeds or the ENTIRE transaction fails.
+        </div>
+
+        <div class="visual">
+Transfer $100 from A → B
+
+Step 1: Deduct $100 from A ✅
+Step 2: Add $100 to B ❌
+
+Without Atomicity:
+Money disappears ❌
+        </div>
+
+        <div class="visual">
+If any step fails:
+ROLLBACK everything ✅
+        </div>
+
+        <div class="memory-box">
+          Memory Trick → Atomicity = ALL or NOTHING
+        </div>
+
+        <div class="interview">
+          <h4>Interview Question</h4>
+          <div class="answer">
+            <strong>Q:</strong> What problem does Atomicity solve?<br><br>
+            <strong>A:</strong> Atomicity prevents partial updates from being stored if part of the transaction fails.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">C — Consistency</h2>
+
+      <div class="card">
+        <h3>Definition</h3>
+
+        <div class="definition">
+          Database rules and constraints are ALWAYS preserved.
+        </div>
+
+        <div class="visual">
+Rule:
+Balance cannot be negative
+
+Attempt:
+Balance = -500
+
+Database → TRANSACTION REJECTED ❌
+        </div>
+
+        <div class="memory-box">
+          Memory Trick → Consistency = Rules always remain valid
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">I — Isolation</h2>
+
+      <div class="card">
+        <h3>Definition</h3>
+
+        <div class="definition">
+          Concurrent transactions should not interfere with each other.
+        </div>
+
+        <div class="visual">
+Only 1 ticket left
+
+User A buys ticket
+User B buys ticket simultaneously
+
+<table>
+    <tr>
+        <th>Without Isolation:</th>
+        <th>With Isolation: </th>
+    </tr>
+    <tr>
+      <td>
+        Both succeed ❌
+        Oversold ticket ❌
+      </td>
+      <td>
+        One transaction succeeds ✅
+        Other waits/fails ✅
+      </td>
+    </tr>
+</table>
+
+        </div>
+ <div class="interview">
+          <h4>Interview Question</h4>
+          <div class="answer">
+            <strong>Q:</strong> Can you define different isolation levels ?<br><br>
+            <strong>A:</strong> 
+            <table>
+          <tr>
+            <th>Isolation Level</th>
+            <th>Protection</th>
+          </tr>
+          <tr>
+            <td>Read Committed</td>
+            <td>Prevents dirty reads</td>
+          </tr>
+          <tr>
+            <td>Repeatable Read</td>
+            <td>Stable reads</td>
+          </tr>
+          <tr>
+            <td>Serializable</td>
+            <td>Full protection</td>
+          </tr>
+        </table>
+          </div>
+        </div>
+        
+
+        <div class="memory-box">
+          Memory Trick → Isolation prevents concurrency corruption
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">D — Durability</h2>
+
+      <div class="card">
+        <h3>Definition</h3>
+
+        <div class="definition">
+          Once data is committed, it survives crashes.
+        </div>
+
+        <div class="visual">
+User places order ✅
+Database commits ✅
+
+Power failure occurs ⚡
+
+After restart:
+Order still exists ✅
+        </div>
+
+        <div class="memory-box">
+          Memory Trick → Durability = Saved forever
+        </div>
+
+        <div class="interview">
+          <h4>Interview Question</h4>
+          <div class="answer">
+            <strong>Q:</strong> How do databases achieve durability?<br><br>
+            <strong>A:</strong> Using WAL logs, replication, checkpoints, and persistent disk storage.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">ACID Summary</h2>
+
+      <div class="card">
+        <table>
+          <tr>
+            <th>Property</th>
+            <th>Meaning</th>
+            <th>Memory Trick</th>
+          </tr>
+          <tr>
+            <td>Atomicity</td>
+            <td>All or nothing</td>
+            <td>No partial work</td>
+          </tr>
+          <tr>
+            <td>Consistency</td>
+            <td>Rules preserved</td>
+            <td>No invalid data</td>
+          </tr>
+          <tr>
+            <td>Isolation</td>
+            <td>No interference</td>
+            <td>Transactions stay separate</td>
+          </tr>
+          <tr>
+            <td>Durability</td>
+            <td>Data survives crashes</td>
+            <td>Saved forever</td>
+          </tr>
+        </table>
+        <a href = "" ></a>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">CAP Theorem</h2>
+
+      <div class="card">
+        <div class="visual">
+CAP
+┌──────────────────────────┐
+│ C → Consistency          │
+│ A → Availability         │
+│ P → Partition Tolerance  │
+└───────────────────────── ┘
+        </div>
+
+        <div class="definition">
+          CAP theorem explains the tradeoffs in distributed databases.
+        </div>
+
+        <table>
+          <tr>
+            <th>Property</th>
+            <th>Meaning</th>
+          </tr>
+          <tr>
+            <td>Consistency</td>
+            <td>Every read gets latest write</td>
+          </tr>
+          <tr>
+            <td>Availability</td>
+            <td>System always responds</td>
+          </tr>
+          <tr>
+            <td>Partition Tolerance</td>
+            <td>System survives network failures</td>
+          </tr>
+        </table>
+
+        <div class="visual">
+When network partition happens:
+
+Choose ONE:
+Consistency
+OR
+Availability
+        </div>
+
+        <div class="memory-box">
+          Memory Trick → CAP = Distributed System Tradeoffs
+        </div>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">CAP Categories</h2>
+
+      <div class="card">
+        <table>
+          <tr>
+            <th>Type</th>
+            <th>Focus</th>
+            <th>Examples</th>
+          </tr>
+          <tr>
+            <td>CP</td>
+            <td>Consistency + Partition Tolerance</td>
+            <td>MongoDB, Google Spanner</td>
+          </tr>
+          <tr>
+            <td>AP</td>
+            <td>Availability + Partition Tolerance</td>
+            <td>Cassandra, DynamoDB</td>
+          </tr>
+          <tr>
+            <td>CA</td>
+            <td>Consistency + Availability</td>
+            <td>MySQL, Oracle</td>
+          </tr>
+        </table>
+      </div>
+    </section>
+
+    <section class="section">
+      <h2 class="section-title">Eventual Consistency</h2>
+
+      <div class="card">
+        <div class="definition">
+          Data becomes consistent over time.
+        </div>
+
+        <div class="visual">
+Update profile picture
+
+US Server → New image ✅
+EU Server → Old image temporarily ❌
+
+Eventually:
+All servers sync ✅
+        </div>
+
+        <div class="interview">
+          <h4>Interview Question</h4>
+          <div class="answer">
+            <strong>Q:</strong> What is eventual consistency?<br><br>
+            <strong>A:</strong> All replicas eventually converge to the same value, but temporary stale reads are allowed.
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="summary">
+      <h2>Final Interview Summary</h2>
+      <p>
+        <span class="highlight">ACID</span> ensures transaction correctness inside a database.<br><br>
+        <span class="highlight">CAP</span> explains tradeoffs in distributed systems during network failures.<br><br>
+        Strong consistency prioritizes correctness, while eventual consistency prioritizes scalability and availability.
+      </p>
+    </div>
+
+  </div>
+
+</body>
+</html>
