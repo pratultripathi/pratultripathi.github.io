@@ -1,1 +1,702 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Caching Strategies</title>
 
+  <style>
+
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #0f172a;
+      color: #e2e8f0;
+      font-family: Inter, Arial, sans-serif;
+      line-height: 1.7;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: auto;
+      padding: 40px 20px;
+    }
+
+    .breadcrumb {
+      color: #94a3b8;
+      margin-bottom: 25px;
+      font-size: 14px;
+    }
+
+    .breadcrumb a {
+      color: #38bdf8;
+      text-decoration: none;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, #1e293b, #111827);
+      padding: 40px;
+      border-radius: 20px;
+      margin-bottom: 30px;
+      border: 1px solid #334155;
+    }
+
+    .hero h1 {
+      font-size: 42px;
+      color: #f8fafc;
+      margin-bottom: 15px;
+    }
+
+    .hero p {
+      color: #cbd5e1;
+      font-size: 18px;
+      max-width: 900px;
+    }
+
+    .tabs {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 30px;
+    }
+
+    .tab-button {
+      background: #1e293b;
+      color: #cbd5e1;
+      border: 1px solid #334155;
+      padding: 14px 22px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: 0.3s;
+      font-weight: 600;
+    }
+
+    .tab-button.active {
+      background: #2563eb;
+      color: white;
+      border-color: #2563eb;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+
+    .card {
+      background: #111827;
+      border: 1px solid #1e293b;
+      border-radius: 18px;
+      padding: 30px;
+      margin-bottom: 25px;
+    }
+
+    .card h2 {
+      color: #f8fafc;
+      margin-bottom: 18px;
+      font-size: 28px;
+    }
+
+    .card p {
+      color: #cbd5e1;
+      margin-bottom: 15px;
+    }
+
+    .visual-box {
+      background: #020617;
+      border: 1px dashed #475569;
+      border-radius: 12px;
+      padding: 22px;
+      margin-top: 20px;
+      overflow-x: auto;
+    }
+
+    .visual-box pre {
+      color: #93c5fd;
+      font-size: 15px;
+    }
+
+    .highlight-box {
+      background: #0f172a;
+      border-left: 5px solid #22c55e;
+      padding: 20px;
+      border-radius: 12px;
+      margin-top: 20px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 20px;
+    }
+
+    table th {
+      background: #1d4ed8;
+      color: white;
+      padding: 14px;
+      text-align: left;
+    }
+
+    table td {
+      padding: 14px;
+      border-bottom: 1px solid #334155;
+      background: #0f172a;
+    }
+
+    .question-card {
+      background: #1e293b;
+      padding: 24px;
+      border-radius: 16px;
+      margin-bottom: 20px;
+      border: 1px solid #334155;
+    }
+
+    .question-card h3 {
+      color: #facc15;
+      margin-bottom: 12px;
+    }
+
+    ul {
+      padding-left: 20px;
+    }
+
+    li {
+      margin-bottom: 10px;
+      color: #cbd5e1;
+    }
+
+    @media(max-width: 768px) {
+
+      .hero h1 {
+        font-size: 32px;
+      }
+
+      .tabs {
+        flex-direction: column;
+      }
+
+      .tab-button {
+        width: 100%;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <div class="container">
+
+    <div class="breadcrumb">
+      <a href="#">Home</a> >
+      <a href="#">Caching</a> >
+      Caching Strategies
+    </div>
+
+    <div class="hero">
+
+      <h1>Caching Strategies</h1>
+
+      <p>
+        Caching improves system performance and scalability by storing frequently accessed data in memory,
+        reducing expensive database and disk operations.
+      </p>
+
+    </div>
+
+    <!-- TAB BUTTONS -->
+
+    <div class="tabs">
+
+      <button class="tab-button active" onclick="openTab(event, 'introduction')">
+        Introduction
+      </button>
+
+      <button class="tab-button" onclick="openTab(event, 'system-design')">
+        System Design Considerations
+      </button>
+
+      <button class="tab-button" onclick="openTab(event, 'architecture')">
+        Architectural Considerations
+      </button>
+
+      <button class="tab-button" onclick="openTab(event, 'interview')">
+        Interview Questions
+      </button>
+
+    </div>
+
+    <!-- INTRODUCTION -->
+
+    <div id="introduction" class="tab-content active">
+
+      <div class="card">
+
+        <h2>What is Caching?</h2>
+
+        <p>
+          Caching stores frequently accessed data in memory so applications can retrieve it quickly
+          without repeatedly hitting databases or disks.
+        </p>
+
+        <div class="highlight-box">
+          Memory access is significantly faster than disk access or network calls.
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <h2>Basic Cached Architecture</h2>
+
+        <div class="visual-box">
+<pre>
+Client
+   ↓
+Load Balancer
+   ↓
+Application Servers
+   ↓
+Caching Layer (Redis/Memcached)
+   ↓
+Database
+</pre>
+        </div>
+
+        <p>
+          Instead of every request directly hitting the database,
+          the application first checks the cache for data.
+        </p>
+
+      </div>
+
+      <div class="card">
+
+        <h2>Cache Hit vs Cache Miss</h2>
+
+        <table>
+
+          <tr>
+            <th>Type</th>
+            <th>Description</th>
+          </tr>
+
+          <tr>
+            <td>Cache Hit</td>
+            <td>Requested data exists in cache and is returned quickly</td>
+          </tr>
+
+          <tr>
+            <td>Cache Miss</td>
+            <td>Requested data is not in cache and must be fetched from database</td>
+          </tr>
+
+        </table>
+
+      </div>
+
+      <div class="card">
+
+        <h2>Read Heavy Systems Benefit Most</h2>
+
+        <p>
+          Caching works best when systems perform significantly more reads than writes.
+        </p>
+
+        <div class="visual-box">
+<pre>
+Wikipedia Example
+
+Reads: Millions ✅
+Writes: Few ❌
+
+Perfect caching use case
+</pre>
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <h2>Common Cache Problems</h2>
+
+        <table>
+
+          <tr>
+            <th>Problem</th>
+            <th>Description</th>
+            <th>Solution</th>
+          </tr>
+
+          <tr>
+            <td>Stale Data</td>
+            <td>Cache contains outdated information</td>
+            <td>Use expiration policies or invalidation</td>
+          </tr>
+
+          <tr>
+            <td>Hotspot / Celebrity Problem</td>
+            <td>One key receives massive traffic</td>
+            <td>Replicate hot data across multiple cache nodes</td>
+          </tr>
+
+          <tr>
+            <td>Cold Start Problem</td>
+            <td>Empty cache overloads database after restart</td>
+            <td>Warm up cache before serving traffic</td>
+          </tr>
+
+        </table>
+
+      </div>
+
+      <div class="card">
+
+        <h2>Eviction Policies</h2>
+
+        <p>
+          Since cache memory is limited, eviction policies decide what data gets removed when memory becomes full.
+        </p>
+
+        <table>
+
+          <tr>
+            <th>Policy</th>
+            <th>Description</th>
+          </tr>
+
+          <tr>
+            <td>LRU</td>
+            <td>Least Recently Used item removed first</td>
+          </tr>
+
+          <tr>
+            <td>LFU</td>
+            <td>Least Frequently Used item removed first</td>
+          </tr>
+
+          <tr>
+            <td>FIFO</td>
+            <td>First inserted item removed first</td>
+          </tr>
+
+        </table>
+
+      </div>
+
+    </div>
+
+    <!-- SYSTEM DESIGN -->
+
+    <div id="system-design" class="tab-content">
+
+      <div class="card">
+
+        <h2>Why Caching Matters in System Design</h2>
+
+        <p>
+          Large-scale systems cannot allow every request to directly hit databases because disk access and network calls are expensive.
+        </p>
+
+        <div class="visual-box">
+<pre>
+Without Cache:
+Application → Database → Disk
+
+With Cache:
+Application → Memory Cache ✅
+</pre>
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <h2>Scalability Benefits</h2>
+
+        <ul>
+          <li>Reduces database load</li>
+          <li>Improves response latency</li>
+          <li>Increases throughput</li>
+          <li>Allows independent cache scaling</li>
+          <li>Reduces cross-data-center traffic</li>
+        </ul>
+
+      </div>
+
+      <div class="card">
+
+        <h2>Distributed Cache Architecture</h2>
+
+        <p>
+          Cache systems are often horizontally distributed across multiple cache servers using hashing mechanisms.
+        </p>
+
+        <div class="visual-box">
+<pre>
+Application Server
+      ↓
+Hash(Key)
+      ↓
+Specific Cache Node
+</pre>
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <h2>Cache Expiration Strategy</h2>
+
+        <p>
+          Expiration policies determine how long data remains cached before becoming stale.
+        </p>
+
+        <div class="highlight-box">
+          Long expiration → Better performance but stale data risk<br><br>
+          Short expiration → Fresh data but lower cache effectiveness
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- ARCHITECTURE -->
+
+    <div id="architecture" class="tab-content">
+
+      <div class="card">
+
+        <h2>Architectural Tradeoffs</h2>
+
+        <table>
+
+          <tr>
+            <th>Benefit</th>
+            <th>Tradeoff</th>
+          </tr>
+
+          <tr>
+            <td>Lower latency</td>
+            <td>Potential stale data</td>
+          </tr>
+
+          <tr>
+            <td>Higher throughput</td>
+            <td>Cache invalidation complexity</td>
+          </tr>
+
+          <tr>
+            <td>Reduced DB load</td>
+            <td>Additional infrastructure</td>
+          </tr>
+
+        </table>
+
+      </div>
+
+      <div class="card">
+
+        <h2>Hotspot / Celebrity Problem</h2>
+
+        <p>
+          Some keys become extremely popular and overload a single cache node.
+        </p>
+
+        <div class="visual-box">
+<pre>
+Example:
+Millions search for "Brad Pitt"
+
+One cache node overloaded ❌
+</pre>
+        </div>
+
+        <div class="highlight-box">
+          Solution:
+          Replicate hot data across multiple cache servers.
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <h2>Cold Start Problem</h2>
+
+        <p>
+          If cache servers restart empty, all traffic suddenly hits the database.
+        </p>
+
+        <div class="visual-box">
+<pre>
+Empty Cache ❌
+↓
+Massive DB Traffic ❌
+↓
+Database Overload ❌
+</pre>
+        </div>
+
+        <div class="highlight-box">
+          Solution:
+          Pre-warm caches using historical traffic or background loading.
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <h2>LRU Cache Internal Design</h2>
+
+        <p>
+          LRU caches commonly combine:
+        </p>
+
+        <ul>
+          <li>HashMap → O(1) lookup</li>
+          <li>Doubly Linked List → maintain usage order</li>
+        </ul>
+
+        <div class="visual-box">
+<pre>
+Most Recently Used ← Head
+
+Least Recently Used ← Tail
+</pre>
+        </div>
+
+      </div>
+
+      <div class="card">
+
+        <h2>Popular Caching Technologies</h2>
+
+        <table>
+
+          <tr>
+            <th>Technology</th>
+            <th>Description</th>
+          </tr>
+
+          <tr>
+            <td>Redis</td>
+            <td>Advanced in-memory data store with replication, pub/sub, and persistence</td>
+          </tr>
+
+          <tr>
+            <td>Memcached</td>
+            <td>Simple high-performance distributed key-value cache</td>
+          </tr>
+
+          <tr>
+            <td>AWS ElastiCache</td>
+            <td>Managed Redis/Memcached service in AWS</td>
+          </tr>
+
+        </table>
+
+      </div>
+
+    </div>
+
+    <!-- INTERVIEW -->
+
+    <div id="interview" class="tab-content">
+
+      <div class="question-card">
+
+        <h3>Q: Why is caching important?</h3>
+
+        <p>
+          Caching improves performance and scalability by reducing expensive database and disk operations.
+        </p>
+
+      </div>
+
+      <div class="question-card">
+
+        <h3>Q: What is a cache hit and cache miss?</h3>
+
+        <p>
+          Cache hit means requested data exists in cache. Cache miss means data must be fetched from database.
+        </p>
+
+      </div>
+
+      <div class="question-card">
+
+        <h3>Q: What is the hotspot problem?</h3>
+
+        <p>
+          Extremely popular keys overload specific cache nodes due to uneven traffic distribution.
+        </p>
+
+      </div>
+
+      <div class="question-card">
+
+        <h3>Q: What is the cold start problem?</h3>
+
+        <p>
+          Empty caches after restart can overload databases because every request becomes a cache miss.
+        </p>
+
+      </div>
+
+      <div class="question-card">
+
+        <h3>Q: Explain LRU cache.</h3>
+
+        <p>
+          LRU removes the least recently used item first using a HashMap and Doubly Linked List.
+        </p>
+
+      </div>
+
+      <div class="question-card">
+
+        <h3>Q: Redis vs Memcached?</h3>
+
+        <p>
+          Redis supports advanced features like persistence, pub/sub, and transactions while Memcached is simpler and lightweight.
+        </p>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+
+    function openTab(event, tabId) {
+
+      const tabs = document.getElementsByClassName('tab-content');
+
+      for (let i = 0; i < tabs.length; i++) {
+        tabs[i].classList.remove('active');
+      }
+
+      const buttons = document.getElementsByClassName('tab-button');
+
+      for (let i = 0; i < buttons.length; i++) {
+        buttons[i].classList.remove('active');
+      }
+
+      document.getElementById(tabId).classList.add('active');
+
+      event.currentTarget.classList.add('active');
+    }
+
+  </script>
+
+</body>
+</html>
