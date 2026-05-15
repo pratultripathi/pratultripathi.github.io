@@ -317,6 +317,190 @@ More anomalies                  Fewer anomalies
 
         </table>
 
+        <!-- ADD THIS INSIDE INTRODUCTION TAB -->
+
+<div class="card">
+
+  <h2>Concurrency Problems Explained</h2>
+
+  <p>
+    Concurrent transactions accessing the same data can lead to inconsistencies
+    if proper isolation is not maintained.
+  </p>
+
+</div>
+
+
+<!-- DIRTY READ -->
+
+<div class="card">
+
+  <h2>1. Dirty Read</h2>
+
+  <p>
+    A dirty read occurs when one transaction reads data that another transaction
+    has modified but NOT committed yet.
+  </p>
+
+  <div class="visual-box">
+<pre>
+Transaction A:
+Update Balance = 0
+(Not committed yet)
+
+Transaction B:
+Reads Balance = 0 ❌
+
+Transaction A:
+ROLLBACK
+
+Problem:
+B saw invalid data
+</pre>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Problem:</strong>
+    Transaction B reads temporary data that may never actually exist permanently.
+  </div>
+
+  <div class="highlight-box">
+    <strong>Solution:</strong>
+    Use Read Committed isolation or higher to prevent reading uncommitted changes.
+  </div>
+
+</div>
+
+
+<!-- NON-REPEATABLE READ -->
+
+<div class="card">
+
+  <h2>2. Non-Repeatable Read</h2>
+
+  <p>
+    A non-repeatable read occurs when the same query returns different values
+    within the same transaction because another transaction modified the data.
+  </p>
+
+  <div class="visual-box">
+<pre>
+Transaction A:
+Reads Balance = 100
+
+Transaction B:
+Updates Balance = 200
+COMMITS
+
+Transaction A:
+Reads Balance again = 200 ❌
+</pre>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Problem:</strong>
+    Same query returns different results during the same transaction.
+  </div>
+
+  <div class="highlight-box">
+    <strong>Solution:</strong>
+    Use Repeatable Read isolation or snapshot-based isolation mechanisms.
+  </div>
+
+</div>
+
+
+<!-- PHANTOM READ -->
+
+<div class="card">
+
+  <h2>3. Phantom Read</h2>
+
+  <p>
+    A phantom read occurs when repeated execution of the same query returns
+    newly inserted or deleted rows.
+  </p>
+
+  <div class="visual-box">
+<pre>
+Transaction A:
+SELECT * FROM orders
+WHERE amount > 100
+
+Result:
+5 rows
+
+Transaction B:
+INSERT new order amount = 500
+COMMITS
+
+Transaction A:
+Runs same query again
+
+Result:
+6 rows ❌
+</pre>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Problem:</strong>
+    New rows unexpectedly appear or disappear during a transaction.
+  </div>
+
+  <div class="highlight-box">
+    <strong>Solution:</strong>
+    Use Serializable isolation or predicate locking.
+  </div>
+
+</div>
+
+
+<!-- LOST UPDATE -->
+
+<div class="card">
+
+  <h2>4. Lost Update</h2>
+
+  <p>
+    A lost update occurs when two transactions update the same data
+    simultaneously and one update overwrites the other.
+  </p>
+
+  <div class="visual-box">
+<pre>
+Initial Balance = 100
+
+Transaction A:
+Reads 100
+
+Transaction B:
+Reads 100
+
+Transaction A:
+Updates Balance = 150
+COMMITS
+
+Transaction B:
+Updates Balance = 120
+COMMITS ❌
+
+Final Balance = 120
+A's update lost ❌
+</pre>
+  </div>
+
+  <div class="highlight-box">
+    <strong>Problem:</strong>
+    One transaction accidentally overwrites another transaction’s update.
+  </div>
+
+  <div class="highlight-box">
+    <strong>Solution:</strong>
+    Use row locking, optimistic locking, or Serializable isolation.
+  </div>
+
+</div>
+        
       </div>
 
     </div>
