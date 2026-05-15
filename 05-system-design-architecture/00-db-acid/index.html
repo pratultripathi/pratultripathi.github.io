@@ -56,13 +56,6 @@
       padding-left: 16px;
     }
 
-    .grid{
-      display:grid;
-      grid-template-columns: repeat(12, 1fr);
-      gap:14px;
-      margin-top:18px;
-    }
-
     .card {
       background: #111827;
       border: 1px solid #1e293b;
@@ -72,26 +65,6 @@
       box-shadow: 0 4px 12px rgba(0,0,0,0.25);
     }
     
-    .cardRef{
-      grid-column: span 6;
-      border:1px solid var(--border);
-      background:rgba(18,26,43,.75);
-      border-radius:16px;
-      padding:16px 16px 14px;
-      box-shadow:var(--shadow);
-      transition: transform .12s ease, border-color .12s ease;
-    }
-    .cardRef:hover{transform: translateY(-2px); border-color: rgba(122,167,255,.35);}
-    .cardRef h3{margin:0 0 8px; font-size:16px}
-    .cardRef p{margin:0 0 10px; color:var(--muted); font-size:13.5px}
-    .cardRef a{
-      color:var(--link);
-      text-decoration:none;
-      font-weight:600;
-      font-size:13.5px;
-    }
-    .cardRef a:hover{text-decoration:underline}
-
     .card h3 {
       font-size: 1.8rem;
       color: #f8fafc;
@@ -559,12 +532,6 @@ All servers sync ✅
     </div>
 
   </div>
-  <div class="grid">
-      <section class="cardRef">
-        <h3>Isolation Level</h3>
-        <p> Detailed explanation</p>
-        <a href="">Open →</a>
-      </section>
-  </div>
+
 </body>
 </html>
