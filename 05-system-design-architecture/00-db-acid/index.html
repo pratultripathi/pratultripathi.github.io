@@ -294,15 +294,27 @@ Only 1 ticket left
 User A buys ticket
 User B buys ticket simultaneously
 
-Without Isolation:
-Both succeed ❌
-Oversold ticket ❌
-        </div>
+<table>
+    <tr>
+        <th>Without Isolation:</th>
+        <th>With Isolation: </th>
+    </tr>
+    <tr>
+      <td>
+        Both succeed ❌
+        Oversold ticket ❌
+      </td>
+      <td>
+        One transaction succeeds ✅
+        Other waits/fails ✅
+      </td>
+    </tr>
+</table>
 
-        <div class="visual">
-With Isolation:
-One transaction succeeds ✅
-Other waits/fails ✅
+
+        
+
+
         </div>
 
         <table>
